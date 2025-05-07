@@ -1,41 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-PWA">
+    <meta charset="UTF-8"> <!-- Corrected charset -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mzansi Fresh Finds</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons (Optional, but nice for UI elements) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4CAF50"> <!-- PWA theme color -->
+    <meta name="theme-color" content="#27AE60"> <!-- Updated theme color -->
 </head>
 <body>
     <header>
-        <!-- <img src="images/logo.png" alt="Mzansi Fresh Finds Logo" id="logo"> -->
-        <h1>Mzansi Fresh Finds</h1>
-        <p>Discover amazing deals on food nearing its best before date!</p>
+        <div class="container">
+             <!-- <img src="images/logo.png" alt="Mzansi Fresh Finds Logo" id="logo"> -->
+            <h1>Mzansi Fresh Finds</h1>
+            <p>Snag amazing deals, save money & fight food waste!</p>
+        </div>
     </header>
 
     <main>
-        <div class="filters">
-            <input type="text" id="searchInput" placeholder="Search deals (e.g., bread, milk)...">
-            <select id="categoryFilter">
-                <option value="all">All Categories</option>
-                <option value="bakery">Bakery</option>
-                <option value="fruitveg">Fruit & Veg</option>
-                <option value="dairy">Dairy</option>
-                <option value="meat">Meat</option>
-                <option value="prepared">Prepared Meals</option>
-            </select>
-        </div>
+        <div class="container">
+            <div class="filters">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search deals (e.g., bread, avo)...">
+                </div>
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="bakery">Bakery</option>
+                    <option value="fruitveg">Fruit & Veg</option>
+                    <option value="dairy">Dairy</option>
+                    <option value="meat">Meat</option>
+                    <option value="prepared">Prepared Meals</option>
+                    <option value="pantry">Pantry Staples</option> <!-- Added category -->
+                </select>
+            </div>
 
-        <div id="deals-container">
-            <!-- Deals will be dynamically inserted here by JavaScript -->
-            <p class="no-deals">Loading deals or no deals available in your area...</p>
+            <div id="deals-container">
+                <!-- Skeleton loaders will be inserted here initially -->
+                <!-- Deals will be dynamically inserted here by JavaScript -->
+                <!-- <p class="no-deals">Loading deals or no deals available...</p> -->
+            </div>
         </div>
     </main>
 
     <footer>
-        <p>© 2023 Mzansi Fresh Finds (Prototype)</p>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Mzansi Fresh Finds</p>
+            <!-- Add link to a future "List Your Business" page -->
+            <!-- <p><a href="#">Businesses: List Your Deals!</a></p> -->
+        </div>
     </footer>
 
     <script src="script.js"></script>

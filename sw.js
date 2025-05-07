@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mzansi-fresh-finds-v1';
+const CACHE_NAME = 'mzansi-fresh-finds-v2';
 const urlsToCache = [
     '/', // Alias for index.html if server is configured
     '/index.html',

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-PWA">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mzansi Fresh Finds</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50"> <!-- PWA theme color -->
+</head>
+<body>
+    <header>
+        <!-- <img src="images/logo.png" alt="Mzansi Fresh Finds Logo" id="logo"> -->
+        <h1>Mzansi Fresh Finds</h1>
+        <p>Discover amazing deals on food nearing its best before date!</p>
+    </header>
+
+    <main>
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="Search deals (e.g., bread, milk)...">
+            <select id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="bakery">Bakery</option>
+                <option value="fruitveg">Fruit & Veg</option>
+                <option value="dairy">Dairy</option>
+                <option value="meat">Meat</option>
+                <option value="prepared">Prepared Meals</option>
+            </select>
+        </div>
+
+        <div id="deals-container">
+            <!-- Deals will be dynamically inserted here by JavaScript -->
+            <p class="no-deals">Loading deals or no deals available in your area...</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2023 Mzansi Fresh Finds (Prototype)</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

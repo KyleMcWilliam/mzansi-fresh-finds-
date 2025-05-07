@@ -1,0 +1,166 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    background: #4CAF50; /* Green, like fresh produce */
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+    border-bottom: #388E3C 3px solid;
+}
+
+header #logo {
+    max-width: 100px;
+    margin-bottom: 0.5em;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+header p {
+    margin: 0.2em 0 0;
+    font-size: 0.9em;
+}
+
+main {
+    padding: 1rem;
+    max-width: 900px;
+    margin: auto;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters input[type="text"],
+.filters select {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+
+#deals-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.deal-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.deal-card img {
+    max-width: 100%;
+    height: 180px; /* Fixed height for consistency */
+    object-fit: cover; /* Ensures image covers the area nicely */
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.deal-card h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.deal-card .business-name {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.deal-card .price {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #D32F2F; /* A discount red */
+    margin-bottom: 5px;
+}
+
+.deal-card .original-price {
+    font-size: 0.9em;
+    text-decoration: line-through;
+    color: #777;
+    margin-left: 5px;
+}
+
+.deal-card .best-before {
+    font-size: 0.85em;
+    color: #FF9800; /* Orange for warning/attention */
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.deal-card .description {
+    font-size: 0.9em;
+    color: #444;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Pushes button to bottom if card height varies */
+}
+
+.deal-card .contact-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.deal-card .contact-btn:hover {
+    background: #388E3C;
+}
+
+.no-deals {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #333;
+    color: #fff;
+    margin-top: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .filters {
+        flex-direction: column;
+    }
+    header h1 {
+        font-size: 1.5em;
+    }
+}

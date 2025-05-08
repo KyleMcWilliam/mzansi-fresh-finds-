@@ -1,64 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"> <!-- Corrected charset -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mzansi Fresh Finds</title>
-    <!-- Google Fonts -->
+    <title>Mzansi Fresh Finds - Deals on Near-Dated Food</title> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome for Icons (Optional, but nice for UI elements) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" /> 
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#27AE60"> <!-- Updated theme color -->
+    <link rel="icon" href="/images/icons/icon-192x192.png" type="image/png"> 
+    <meta name="theme-color" content="#27AE60">
+    <meta name="description" content="Discover amazing deals on quality food nearing its best before date from local South African businesses. Save money & fight food waste with Mzansi Fresh Finds.">
 </head>
 <body>
-    <header>
+    <a href="#main-content" class="skip-to-content">Skip to main content</a>
+
+    <header class="site-header fade-in">
         <div class="container">
-             <!-- <img src="images/logo.png" alt="Mzansi Fresh Finds Logo" id="logo"> -->
+            <!-- Optional Logo Spot -->
+            <!-- <img src="/images/logo.png" alt="Mzansi Fresh Finds Logo" class="site-logo"> -->
             <h1>Mzansi Fresh Finds</h1>
             <p>Snag amazing deals, save money & fight food waste!</p>
         </div>
     </header>
 
-    <main>
+    <main id="main-content">
         <div class="container">
-            <div class="filters">
-                <div class="search-wrapper">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Search deals (e.g., bread, avo)...">
+            <!-- Filters Section -->
+            <section class="filters-section fade-in" style="animation-delay: 0.1s;">
+                <h2 class="sr-only">Filter & Sort Deals</h2>
+                <div class="filters">
+                    <!-- Search Input -->
+                    <div class="search-wrapper">
+                        <label for="searchInput" class="sr-only">Search Deals</label>
+                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                        <input type="text" id="searchInput" placeholder="Search (e.g., bread, avo)..." aria-label="Search for deals by keyword">
+                    </div>
+                    <!-- Category Filter -->
+                    <div class="category-wrapper">
+                        <label for="categoryFilter" class="sr-only">Filter by Category</label>
+                        <select id="categoryFilter" aria-label="Filter deals by category">
+                            <option value="all">All Categories</option>
+                            <option value="bakery">Bakery</option>
+                            <option value="fruitveg">Fruit & Veg</option>
+                            <option value="dairy">Dairy</option>
+                            <option value="meat">Meat</option>
+                            <option value="prepared">Prepared Meals</option>
+                            <option value="pantry">Pantry Staples</option>
+                        </select>
+                    </div>
+                    <!-- Sort Dropdown -->
+                    <div class="sort-wrapper">
+                         <label for="sortDeals" class="sr-only">Sort Deals</label>
+                         <select id="sortDeals" aria-label="Sort deals">
+                            <option value="default">Sort by: Default</option>
+                            <option value="price-asc">Price: Low to High</option>
+                            <option value="price-desc">Price: High to Low</option>
+                            <option value="ending-soon">Ending Soonest</option>
+                            <!-- <option value="newest">Newly Added</option> --> 
+                         </select>
+                    </div>
+                     <!-- Clear Filters Button -->
+                    <div class="clear-wrapper">
+                        <button id="clearFiltersBtn" class="clear-filters-btn" aria-label="Clear all filters and sorting">
+                            <i class="fas fa-times" aria-hidden="true"></i> Clear
+                        </button>
+                    </div>
                 </div>
-                <select id="categoryFilter">
-                    <option value="all">All Categories</option>
-                    <option value="bakery">Bakery</option>
-                    <option value="fruitveg">Fruit & Veg</option>
-                    <option value="dairy">Dairy</option>
-                    <option value="meat">Meat</option>
-                    <option value="prepared">Prepared Meals</option>
-                    <option value="pantry">Pantry Staples</option> <!-- Added category -->
-                </select>
-            </div>
+            </section>
 
-            <div id="deals-container">
-                <!-- Skeleton loaders will be inserted here initially -->
-                <!-- Deals will be dynamically inserted here by JavaScript -->
-                <!-- <p class="no-deals">Loading deals or no deals available...</p> -->
-            </div>
+            <!-- Deals Grid Section -->
+            <section class="deals-section fade-in" style="animation-delay: 0.2s;">
+                <h2 class="sr-only">Current Deals</h2>
+                <div id="deals-container">
+                    <!-- Skeleton loaders/Deals dynamically inserted -->
+                </div>
+            </section>
         </div>
     </main>
 
-    <footer>
+  <!-- Footer -->
+     <footer class="site-footer fade-in" style="animation-delay: 0.3s;">
         <div class="container">
-            <p>© <span id="currentYear"></span> Mzansi Fresh Finds</p>
-            <!-- Add link to a future "List Your Business" page -->
-            <!-- <p><a href="#">Businesses: List Your Deals!</a></p> -->
+            <p>© <span id="currentYear"></span> Mzansi Fresh Finds. Fighting food waste, one deal at a time.</p>
+            <p class="footer-links">
+                <a href="about.html">About Us</a> | 
+                <a href="contact.html">Contact</a> | 
+                <a href="privacy.html">Privacy Policy</a> | 
+                <a href="business-signup.html">List Your Business</a> 
+            </p>
         </div>
     </footer>
 
+    <!-- Deal Detail Modal -->
+    <div id="dealModal" class="modal" aria-labelledby="modalTitle" aria-describedby="modalDescription" role="dialog" aria-modal="true" hidden>
+        <div class="modal-overlay" tabindex="-1" data-micromodal-close></div>
+        <div class="modal-content" role="document">
+            <button class="modal-close" aria-label="Close modal" data-micromodal-close><i class="fas fa-times"></i></button>
+            <div class="modal-body">
+                <div class="modal-image-container">
+                    <img id="modalImage" src="images/placeholder-food.png" alt="Deal product image" loading="lazy"> 
+                </div>
+                <div class="modal-details">
+                    <h3 id="modalTitle">Deal Title</h3>
+                    <p class="modal-business" id="modalBusiness"><i class="fas fa-store-alt"></i> Business Name - Location</p>
+                    <div class="modal-price-container">
+                        <span class="modal-price" id="modalPrice">R0.00</span>
+                        <span class="modal-original-price" id="modalOriginalPrice">R0.00</span>
+                    </div>
+                    <p class="modal-best-before" id="modalBestBefore"><i class="far fa-calendar-alt"></i> Best Before: Date</p>
+                    <p id="modalDescription" class="modal-description-text">Full description of the deal will appear here.</p>
+                    <div class="modal-contact-info">
+                        <h4>Contact Seller:</h4>
+                        <p id="modalContact">Contact details will appear here.</p>
+                        <!-- Dynamic link example (JS needs to populate href) -->
+                        <!-- <a href="#" id="modalWhatsAppLink" class="whatsapp-button" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> Chat on WhatsApp</a> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" title="Go to top" aria-label="Scroll to top of page"><i class="fas fa-arrow-up"></i></button>
+
+    <!-- Main Script -->
     <script src="script.js"></script>
 </body>
 </html>

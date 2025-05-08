@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Mzansi Fresh Finds</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="/images/icons/icon-192x192.png" type="image/png">
+    <meta name="theme-color" content="#27AE60">
+    <meta name="description" content="Get in touch with the Mzansi Fresh Finds team. Send us your questions, feedback, or partnership inquiries.">
+</head>
+<body>
+    <a href="#main-content" class="skip-to-content">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container">
+             <h1><a href="index.html" style="color: inherit; text-decoration: none;">Mzansi Fresh Finds</a></h1>
+            <p>Snag amazing deals, save money & fight food waste!</p>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div class="container content-page">
+            <section class="fade-in">
+                <h2>Contact Us</h2>
+                <p>Have questions, feedback, or interested in partnering with us? We'd love to hear from you!</p>
+                <p><strong>Important:</strong> For questions about specific deals listed on the site, please contact the seller directly using the details provided in the deal listing modal.</p>
+
+                <!-- Placeholder Contact Form -->
+                <form action="#" method="POST" id="contactForm">
+                    <div class="form-group">
+                        <label for="contactName">Your Name:</label>
+                        <input type="text" id="contactName" name="contactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmail">Your Email:</label>
+                        <input type="email" id="contactEmail" name="contactEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSubject">Subject:</label>
+                        <input type="text" id="contactSubject" name="contactSubject">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessage">Message:</label>
+                        <textarea id="contactMessage" name="contactMessage" rows="6" required></textarea>
+                    </div>
+                    <button type="submit" class="button-style">Send Message (Placeholder)</button>
+                    <p style="font-size: 0.8em; margin-top: var(--space-sm);">*This form is currently a placeholder and does not send messages.</p>
+                </form>
+                
+                <p style="margin-top: var(--space-xl);">Alternatively, you can reach us via email at: <a href="mailto:info@mzansifreshfinds.placeholder.co.za">info@mzansifreshfinds.placeholder.co.za</a> (Replace with your real email address).</p>
+
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>© <span id="currentYear"></span> Mzansi Fresh Finds. Fighting food waste, one deal at a time.</p>
+            <p class="footer-links">
+                <a href="about.html">About Us</a> |
+                <a href="contact.html">Contact</a> |
+                <a href="privacy.html">Privacy Policy</a> |
+                <a href="business-signup.html">List Your Business</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -57,42 +57,21 @@ header p {
 /* --- Filters --- */
 .filters {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap; 
     gap: 15px;
     margin: 2rem 0;
     padding: 15px;
     background-color: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
+    align-items: center; /* Vertically align items if they wrap */
 }
 
 .search-wrapper {
     position: relative;
-    flex-grow: 1;
-    min-width: 250px; /* Ensure it doesn't get too small */
-}
-
-.search-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-medium);
-}
-
-.filters input[type="text"] {
-    width: 100%; /* Make it take full width of wrapper */
-    padding: 12px 12px 12px 40px; /* Left padding for icon */
-    border: 1px solid #DADCE0;
-    border-radius: var(--border-radius);
-    font-size: 1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.filters input[type="text"]:focus {
-    outline: none;
-    border-color: var(--primary-green);
-    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2);
+    /* flex-grow: 1; Remove or adjust */
+    flex: 1 1 300px; /* grow, shrink, basis - basis gives it a preferred starting width */
+    min-width: 250px; 
 }
 
 .filters select {
@@ -101,140 +80,10 @@ header p {
     border-radius: var(--border-radius);
     font-size: 1em;
     background-color: var(--white);
-    min-width: 200px; /* Ensure it has some width */
-    flex-grow: 0.5; /* Allow some growth but less than search */
+    /* flex-grow: 0.5; Remove or adjust */
+    flex: 0 1 220px; /* don't grow much, allow shrink, basis */
+    min-width: 200px; 
     cursor: pointer;
-}
-.filters select:focus {
-    outline: none;
-    border-color: var(--primary-green);
-}
-
-/* --- Deals Container & Cards --- */
-#deals-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-    min-height: 300px; /* To show loaders or "no deals" message */
-}
-
-.deal-card {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    overflow: hidden; /* To contain image border radius */
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.deal-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.deal-card-image-container {
-    width: 100%;
-    height: 200px; /* Fixed height for consistency */
-    overflow: hidden; /* For zoom effect if desired */
-}
-.deal-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.4s ease;
-}
-.deal-card:hover img {
-    /* transform: scale(1.05); */ /* Optional zoom on hover */
-}
-
-.deal-card-content {
-    padding: 15px 20px 20px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Make content take remaining space */
-}
-
-.deal-card h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1.3em;
-    font-weight: 600;
-    line-height: 1.3;
-}
-
-.deal-card .business-name {
-    font-size: 0.9em;
-    color: var(--text-medium);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-}
-.deal-card .business-name i { /* For location icon */
-    margin-right: 6px;
-    color: var(--primary-green);
-}
-
-.deal-card .price-container {
-    display: flex;
-    align-items: baseline;
-    margin-bottom: 8px;
-}
-.deal-card .price {
-    font-size: 1.6em;
-    font-weight: 700;
-    color: var(--primary-green);
-}
-.deal-card .original-price {
-    font-size: 0.95em;
-    text-decoration: line-through;
-    color: var(--text-medium);
-    margin-left: 8px;
-}
-
-.deal-card .best-before {
-    font-size: 0.9em;
-    color: var(--accent-orange);
-    margin-bottom: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-.deal-card .best-before i { /* For calendar icon */
-    margin-right: 6px;
-}
-
-.deal-card .description {
-    font-size: 0.95em;
-    color: var(--text-medium);
-    margin-bottom: 15px;
-    flex-grow: 1;
-    line-height: 1.5;
-}
-
-.deal-card .contact-btn {
-    background: var(--primary-green);
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 1em;
-    font-weight: 600;
-    font-family: 'Poppins', sans-serif;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    align-self: flex-start; /* Align to start if card content is shorter */
-}
-.deal-card .contact-btn:hover {
-    background-color: #229954; /* Darker green */
-    transform: scale(1.03);
-}
-.deal-card .contact-btn:active {
-    transform: scale(0.98);
 }
 
 

@@ -1,4 +1,6 @@
-/* --- Base, Typography, and Variables --- */
+/* ==========================================================================
+   Base, Typography, and Variables
+   ========================================================================== */
 :root {
     /* Color Palette */
     --primary-green: #27AE60; 
@@ -27,6 +29,8 @@
     --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.08); 
     --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.1); 
     --shadow-inset: inset 0 1px 3px rgba(44, 62, 80, 0.1);
+    --primary-green-focus-shadow: rgba(39, 174, 96, 0.2); /* For focus rings */
+    --text-shadow-dark-bg: rgba(0, 0, 0, 0.2); /* For text on dark backgrounds */
 
     /* Borders & Radii */
     --border-color: #EAECEE; /* Lighter border */
@@ -74,7 +78,8 @@ body {
     overflow-x: hidden; 
 }
 
-/* Accessibility: Skip to content link */
+/* --- Accessibility Features --- */
+/* Skip to content link */
 .skip-to-content {
     position: absolute;
     left: -10000px; 
@@ -99,7 +104,7 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-/* Accessibility: Screen-reader only text */
+/* Screen-reader only text utility */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -112,7 +117,11 @@ body {
     border-width: 0;
 }
 
-/* --- Typography Refinements --- */
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/* --- Section: Headings --- */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-primary);
     font-weight: 600; 
@@ -121,10 +130,11 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: var(--space-md); 
     line-height: 1.3;
 }
-h1 { font-size: clamp(1.8em, 5vw, 2.6em); font-weight: 700; } /* Adjusted H1 size */
+h1 { font-size: clamp(1.8em, 5vw, 2.6em); font-weight: 700; }
 h2 { font-size: clamp(1.4em, 4vw, 1.8em); } 
 h3 { font-size: clamp(1.2em, 3vw, 1.4em); }
 
+/* --- Section: Paragraphs --- */
 p {
     margin-top: 0;
     margin-bottom: var(--space-lg);
@@ -133,9 +143,10 @@ p:last-child {
     margin-bottom: 0;
 }
 
+/* --- Section: General Link Styles --- */
 a {
     color: var(--primary-green);
-    text-decoration: underline; /* Underline links by default for clarity */
+    text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
     font-weight: 600; 
@@ -151,10 +162,12 @@ a:focus-visible {
     outline: 2px solid var(--primary-green-light);
     outline-offset: 3px;
     border-radius: var(--border-radius-sm);
-    text-decoration: none; /* Hide underline on focus-visible */
+    text-decoration: none;
 }
 
-
+/* ==========================================================================
+   Layout & General Components
+   ========================================================================== */
 .container {
     width: 90%;
     max-width: 1200px; 
@@ -170,7 +183,9 @@ a:focus-visible {
 .fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; }
 .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
 
-/* --- Header --- */
+/* ==========================================================================
+   Header
+   ========================================================================== */
 .site-header { 
     background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%); 
     color: var(--white-text-for-dark-bg); 
@@ -191,22 +206,24 @@ a:focus-visible {
 }
 .site-header h1 {
     color: var(--white-text-for-dark-bg);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-    margin-bottom: var(--space-xs); /* Reduced H1 margin */
-    font-size: clamp(2em, 5.5vw, 2.8em); /* Adjusted H1 size */
+    text-shadow: var(--text-shadow-dark-bg);
+    margin-bottom: var(--space-xs);
+    font-size: clamp(2em, 5.5vw, 2.8em);
     letter-spacing: -0.5px; 
 }
 .site-header p { 
     color: var(--white-text-for-dark-bg); 
     opacity: 0.9; 
-    font-size: clamp(0.95em, 2.2vw, 1.1em); /* Adjusted tagline size */
+    font-size: clamp(0.95em, 2.2vw, 1.1em);
     font-weight: 400; 
     max-width: 650px; 
-    margin: 0 auto; /* Remove implicit paragraph margin */
+    margin: 0 auto;
     line-height: 1.5;
 }
 
-/* --- Filters --- */
+/* ==========================================================================
+   Filters Section
+   ========================================================================== */
 .filters-section { margin-bottom: var(--space-xl); } 
 
 .filters {
@@ -276,8 +293,8 @@ a:focus-visible {
 .filters input[type="text"]:focus, .filters select:focus, .filters .clear-filters-btn:focus {
     outline: none;
     border-color: var(--primary-green);
-    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
-    background-color: var(--white); 
+    box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+    background-color: var(--bg-card); /* Changed from --white to --bg-card */
 }
 
 .clear-filters-btn {
@@ -300,8 +317,9 @@ a:focus-visible {
 }
 .clear-filters-btn i { margin-right: var(--space-xs); }
 
-
-/* --- Deals Container & Cards --- */
+/* ==========================================================================
+   Deals Container & Cards
+   ========================================================================== */
 .deals-section { animation-fill-mode: both; } 
 
 #deals-container {
@@ -441,7 +459,9 @@ a:focus-visible {
     box-shadow: var(--shadow-inset);
 }
 
-/* --- Modal Styles --- */
+/* ==========================================================================
+   Modal Styles
+   ========================================================================== */
 .modal {
     display: none; 
     position: fixed;
@@ -549,7 +569,9 @@ a:focus-visible {
 }
 /* WhatsApp button styling remains the same */
 
-/* --- Scroll to Top Button --- */
+/* ==========================================================================
+   Scroll to Top Button
+   ========================================================================== */
 #scrollToTopBtn {
     display: none; 
     position: fixed;
@@ -586,7 +608,9 @@ a:focus-visible {
     outline: none;
 }
 
-/* --- No Deals & Skeleton --- */
+/* ==========================================================================
+   No Deals Message & Skeleton Loaders
+   ========================================================================== */
 .no-deals-message, .skeleton-card { 
     border-radius: var(--border-radius-lg);
     background-color: var(--bg-card);
@@ -620,9 +644,11 @@ a:focus-visible {
     animation: pulse-bg-skeleton 1.8s infinite linear; 
     border-bottom: 1px solid var(--border-color);
 }
-.skeleton-content { padding: var(--space-lg); } /* Match card padding */
+
+/* --- Section: Skeleton Loader Specifics --- */
+.skeleton-content { padding: var(--space-lg); }
 .skeleton-line {
-    height: 1em; /* Adjusted */
+    height: 1em;
     background: linear-gradient(100deg, #f0f1f3 30%, #e4e7e9 50%, #f0f1f3 70%);
     background-size: 400% 100%;
     margin-bottom: var(--space-md); /* Use spacing var */
@@ -641,7 +667,9 @@ a:focus-visible {
     100% { background-position: -150% 0; }
 }
 
-/* --- Footer --- */
+/* ==========================================================================
+   Footer
+   ========================================================================== */
 .site-footer { 
     text-align: center;
     padding: var(--space-xl) var(--space-lg); 
@@ -655,22 +683,27 @@ a:focus-visible {
     margin-bottom: var(--space-sm);
     color: var(--neutral-light); 
 }
-.site-footer .footer-links { /* Target links paragraph */
+.site-footer .footer-links { /* This class is on the <p> tag inside <nav> */
     margin-top: var(--space-sm);
+}
+.site-footer .footer-nav {
+    /* No specific styling for the nav element itself yet, styling is on .footer-links p and a tags */
 }
 .site-footer .footer-links a {
     color: var(--primary-green-light); 
     font-weight: 600;
     margin: 0 var(--space-sm);
-    text-decoration: none; /* No underline in footer */
+    text-decoration: none;
 }
 .site-footer .footer-links a:hover, .site-footer .footer-links a:focus {
-    color: var(--white); 
-    text-decoration: underline; /* Underline on hover/focus only */
+    color: var(--white-text-for-dark-bg);
+    text-decoration: underline;
     outline-color: var(--primary-green); 
 }
 
-/* --- Responsive Adjustments --- */
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
 @media (max-width: 992px) { 
     .container { width: 92%; }
     #deals-container {

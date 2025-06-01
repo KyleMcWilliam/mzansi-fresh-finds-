@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Shopping Cart - Mzansi Fresh Finds</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <!-- Common navigation will be loaded here -->
+        <nav>
+            <a href="index.html" class="logo">Mzansi Fresh Finds</a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="deals.html">Deals</a></li>
+                <li><a href="cart.html">Cart (<span id="cart-count">0</span>)</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Your Shopping Cart</h1>
+        <div id="cart-items-container">
+            <!-- Cart items will be dynamically loaded here -->
+        </div>
+
+        <div id="cart-summary-section">
+            <div id="cart-total-section">
+                Total: <span id="cart-total">R0.00</span>
+            </div>
+            <button id="clear-cart-btn" class="button-danger">
+                <i class="fas fa-trash"></i> Clear Cart
+            </button>
+            <button id="checkout-btn" class="button-primary">
+                <i class="fas fa-credit-card"></i> Proceed to Checkout
+            </button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="currentYear"></span> Mzansi Fresh Finds. All rights reserved.</p>
+        <!-- Placeholder for actual footer content -->
+    </footer>
+
+    <script type="module" src="js/cart-page.js"></script>
+    <!-- Optional: Script for common elements like header/footer loading or current year -->
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        // In a real app, header/footer might be loaded by a shared JS module.
+        // For cart count in header to be dynamic on this page as well,
+        // cart.js loadCart and ui.js updateCartCount (or similar) would need to run.
+        // For now, js/cart-page.js will also update the header's cart-count.
+    </script>
+</body>
+</html>

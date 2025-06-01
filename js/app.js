@@ -1,5 +1,6 @@
 // Main application orchestrator
 import { FILTERS_STORAGE_KEY } from './config.js';
+import { loadCart } from './cart.js';
 import * as deals from './deals.js';
 import * as ui from './ui.js';
 import * as modal from './modal.js';
@@ -115,6 +116,7 @@ async function initializeApp() {
     }
 
     registerServiceWorker();
+    loadCart(); // Initialize the shopping cart
     ui.showSkeletonLoaders(); // Show skeleton loaders early
 
     try {

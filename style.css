@@ -3,31 +3,31 @@
    ========================================================================== */
 :root {
     /* Color Palette */
-    --primary-green: #27AE60; 
-    --primary-green-dark: #1E8449; 
-    --primary-green-light: #A9DFBF; 
-    --accent-orange: #E67E22; 
-    --accent-yellow: #F1C40F; 
-    
-    --neutral-darkest: #2C3E50; 
-    --neutral-dark: #34495E;    
+    --primary-green: #27AE60;
+    --primary-green-dark: #1E8449;
+    --primary-green-light: #A9DFBF;
+    --accent-orange: #E67E22;
+    --accent-yellow: #F1C40F;
+
+    --neutral-darkest: #2C3E50;
+    --neutral-dark: #34495E;
     --neutral-medium: #566573;  /* Slightly darker body text */
-    --neutral-light: #95A5A6;   
+    --neutral-light: #95A5A6;
     --neutral-lightest: #BDC3C7;
-    
+
     --bg-page: #F8F9FA;         /* Slightly different off-white */
-    --bg-card: #FFFFFF;         
-    
-    --white-text-for-dark-bg: #FDFEFE; 
-    --primary-green-accessible-text: #FFFFFF; 
-    --header-gradient-start: #2ECC71; 
-    --header-gradient-end: #27AE60;   
-    --bg-header-footer: var(--neutral-darkest); 
+    --bg-card: #FFFFFF;
+
+    --white-text-for-dark-bg: #FDFEFE;
+    --primary-green-accessible-text: #FFFFFF;
+    --header-gradient-start: #2ECC71;
+    --header-gradient-end: #27AE60;
+    --bg-header-footer: var(--neutral-darkest);
 
     /* Shadows */
     --shadow-sm: 0 2px 4px rgba(44, 62, 80, 0.06); /* Use darkest neutral for shadow base */
-    --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.08); 
-    --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.1); 
+    --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.08);
+    --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.1);
     --shadow-inset: inset 0 1px 3px rgba(44, 62, 80, 0.1);
     --primary-green-focus-shadow: rgba(39, 174, 96, 0.2); /* For focus rings */
     --text-shadow-dark-bg: rgba(0, 0, 0, 0.2); /* For text on dark backgrounds */
@@ -35,7 +35,7 @@
     /* Borders & Radii */
     --border-color: #EAECEE; /* Lighter border */
     --border-radius-sm: 6px;
-    --border-radius-md: 10px; 
+    --border-radius-md: 10px;
     --border-radius-lg: 12px; /* Slightly less rounding for cleaner lines */
 
     /* Spacing Unit */
@@ -50,7 +50,7 @@
     /* Transitions */
     --transition-fast: 0.15s ease-out;
     --transition-medium: 0.25s ease-out;
-    --transition-slow: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
+    --transition-slow: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 
     /* Fonts */
     --font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -62,7 +62,7 @@
 }
 
 html {
-    scroll-behavior: smooth; 
+    scroll-behavior: smooth;
     font-size: 100%; /* 1rem = 16px by default */
 }
 
@@ -72,17 +72,17 @@ body {
     background-color: var(--bg-page);
     color: var(--neutral-medium);
     line-height: 1.75; /* Further increase for readability */
-    font-size: 1rem; 
+    font-size: 1rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden; 
+    overflow-x: hidden;
 }
 
 /* --- Accessibility Features --- */
 /* Skip to content link */
 .skip-to-content {
     position: absolute;
-    left: -10000px; 
+    left: -10000px;
     top: auto;
     width: 1px;
     height: 1px;
@@ -90,7 +90,7 @@ body {
     background-color: var(--primary-green);
     color: var(--white-text-for-dark-bg);
     padding: var(--space-md);
-    z-index: 9999; 
+    z-index: 9999;
     border-radius: 0 0 var(--border-radius-md) 0;
     font-weight: 600;
 }
@@ -124,14 +124,14 @@ body {
 /* --- Section: Headings --- */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-primary);
-    font-weight: 600; 
+    font-weight: 600;
     color: var(--neutral-darkest);
     margin-top: 0;
-    margin-bottom: var(--space-md); 
+    margin-bottom: var(--space-md);
     line-height: 1.3;
 }
 h1 { font-size: clamp(1.8em, 5vw, 2.6em); font-weight: 700; }
-h2 { font-size: clamp(1.4em, 4vw, 1.8em); } 
+h2 { font-size: clamp(1.4em, 4vw, 1.8em); }
 h3 { font-size: clamp(1.2em, 3vw, 1.4em); }
 
 /* --- Section: Paragraphs --- */
@@ -149,10 +149,10 @@ a {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
-    font-weight: 600; 
+    font-weight: 600;
     transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
 }
-a:hover, a:focus { 
+a:hover, a:focus {
     color: var(--primary-green-dark);
     text-decoration-color: var(--primary-green-dark); /* Change underline color on hover */
     outline: none; /* Remove default focus outline if providing custom below */
@@ -170,7 +170,7 @@ a:focus-visible {
    ========================================================================== */
 .container {
     width: 90%;
-    max-width: 1200px; 
+    max-width: 1200px;
     margin: 0 auto;
     padding-left: var(--space-lg);
     padding-right: var(--space-lg);
@@ -186,18 +186,18 @@ a:focus-visible {
 /* ==========================================================================
    Header
    ========================================================================== */
-.site-header { 
-    background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%); 
-    color: var(--white-text-for-dark-bg); 
+.site-header {
+    background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
+    color: var(--white-text-for-dark-bg);
     padding: var(--space-xl) 0; /* Reduced padding */
     text-align: center;
     margin-bottom: var(--space-xl); /* Reduced margin */
-    position: relative; 
-    overflow: hidden; 
+    position: relative;
+    overflow: hidden;
     border-bottom: 4px solid var(--primary-green-dark); /* Add a bottom border accent */
 }
-.site-header .container { 
-    position: relative; 
+.site-header .container {
+    position: relative;
     z-index: 1;
 }
 .site-logo { /* Basic logo styling if added */
@@ -209,14 +209,14 @@ a:focus-visible {
     text-shadow: var(--text-shadow-dark-bg);
     margin-bottom: var(--space-xs);
     font-size: clamp(2em, 5.5vw, 2.8em);
-    letter-spacing: -0.5px; 
+    letter-spacing: -0.5px;
 }
-.site-header p { 
-    color: var(--white-text-for-dark-bg); 
-    opacity: 0.9; 
+.site-header p {
+    color: var(--white-text-for-dark-bg);
+    opacity: 0.9;
     font-size: clamp(0.95em, 2.2vw, 1.1em);
-    font-weight: 400; 
-    max-width: 650px; 
+    font-weight: 400;
+    max-width: 650px;
     margin: 0 auto;
     line-height: 1.5;
 }
@@ -224,24 +224,24 @@ a:focus-visible {
 /* ==========================================================================
    Filters Section
    ========================================================================== */
-.filters-section { margin-bottom: var(--space-xl); } 
+.filters-section { margin-bottom: var(--space-xl); }
 
 .filters {
     display: flex;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
     gap: var(--space-md); /* Slightly reduced gap */
     padding: var(--space-lg); /* Adjusted padding */
     background-color: var(--bg-card);
-    border-radius: var(--border-radius-lg); 
+    border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color); /* Added subtle border */
     box-shadow: var(--shadow-sm); /* Reduced shadow */
     align-items: stretch; /* Stretch items to same height */
 }
 
-.search-wrapper, .category-wrapper, .sort-wrapper, .clear-wrapper { 
-    display: flex; 
-    flex-direction: column; 
-    position: relative; 
+.search-wrapper, .category-wrapper, .sort-wrapper, .clear-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 .search-wrapper { flex: 3 1 280px; min-width: 250px; }
 .category-wrapper { flex: 1 1 180px; min-width: 170px; }
@@ -253,14 +253,14 @@ a:focus-visible {
     position: absolute;
     left: var(--space-md); /* Adjusted icon position */
     top: 50%;
-    transform: translateY(-50%); 
+    transform: translateY(-50%);
     color: var(--neutral-light);
-    font-size: 1em; 
-    pointer-events: none; 
+    font-size: 1em;
+    pointer-events: none;
 }
 
 .filters input[type="text"], .filters select, .filters .clear-filters-btn {
-    width: 100%; 
+    width: 100%;
     height: 46px; /* Consistent height for filter controls */
     padding: var(--space-sm) var(--space-md); /* Adjusted padding */
     border: 1px solid var(--border-color);
@@ -268,7 +268,7 @@ a:focus-visible {
     font-size: 0.95em; /* Slightly smaller font in filters */
     font-family: var(--font-secondary);
     color: var(--neutral-dark);
-    background-color: var(--bg-page); 
+    background-color: var(--bg-page);
     transition: border-color var(--transition-medium), box-shadow var(--transition-medium), background-color var(--transition-medium);
 }
 .filters input[type="text"] {
@@ -278,12 +278,12 @@ a:focus-visible {
 
 .filters select {
     cursor: pointer;
-    appearance: none; 
+    appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237F8C8D' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right var(--space-md) center;
     background-size: 0.9em 0.9em;
-    padding-right: calc(var(--space-md) * 3); 
+    padding-right: calc(var(--space-md) * 3);
 }
 .filters select.has-filter { /* Visual feedback for active filter */
     border-color: var(--primary-green-light);
@@ -320,42 +320,42 @@ a:focus-visible {
 /* ==========================================================================
    Deals Container & Cards
    ========================================================================== */
-.deals-section { animation-fill-mode: both; } 
+.deals-section { animation-fill-mode: both; }
 
 #deals-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); /* Slightly reduced min width */
     gap: var(--space-lg); /* Use lg gap */
-    min-height: 300px; 
+    min-height: 300px;
 }
 
 .deal-card {
     background: var(--bg-card);
-    border-radius: var(--border-radius-lg); 
+    border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color); /* Subtle border */
     box-shadow: var(--shadow-sm); /* Start with smaller shadow */
-    overflow: hidden; 
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    opacity: 0; 
+    opacity: 0;
     animation: fadeInUp 0.5s ease-out forwards;
-    transition: transform var(--transition-medium), box-shadow var(--transition-medium); 
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
 }
 .deal-card:hover {
     transform: translateY(-5px); /* Slightly more lift */
     box-shadow: var(--shadow-md); /* Use medium shadow on hover */
 }
 .deals-section .deal-card:nth-child(-n+4) { /* Animate first few instantly */
-    animation-delay: inherit !important; 
+    animation-delay: inherit !important;
 }
 
 
 .deal-card-image-container {
     width: 100%;
     height: 200px; /* Back to 200px */
-    background-color: var(--neutral-lightest); 
-    overflow: hidden; 
-    position: relative; 
+    background-color: var(--neutral-lightest);
+    overflow: hidden;
+    position: relative;
     border-bottom: 1px solid var(--border-color); /* Separator */
 }
 .deal-card img {
@@ -363,7 +363,7 @@ a:focus-visible {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.5s var(--transition-slow); 
+    transition: transform 0.5s var(--transition-slow);
 }
 .deal-card:hover img {
     transform: scale(1.04); /* Slightly less zoom */
@@ -373,13 +373,13 @@ a:focus-visible {
     padding: var(--space-lg); /* Adjusted padding */
     display: flex;
     flex-direction: column;
-    flex-grow: 1; 
+    flex-grow: 1;
 }
 
-.deal-card h3 { 
+.deal-card h3 {
     margin-bottom: var(--space-xs); /* Less space */
     font-size: 1.25em; /* Adjusted */
-    font-weight: 700; 
+    font-weight: 700;
     color: var(--neutral-darkest);
     line-height: 1.4;
 }
@@ -403,40 +403,40 @@ a:focus-visible {
     margin-bottom: var(--space-md);
     gap: var(--space-sm);
 }
-.deal-card .price { 
-    font-size: 1.8em; 
+.deal-card .price {
+    font-size: 1.8em;
     font-weight: 700;
     color: var(--primary-green);
-    line-height: 1; 
+    line-height: 1;
 }
 .deal-card .original-price {
-    font-size: 0.95em; 
+    font-size: 0.95em;
     text-decoration: line-through;
-    color: var(--neutral-light); 
+    color: var(--neutral-light);
 }
 
 .deal-card .description {
     font-size: 0.95em; /* Slightly smaller description */
     color: var(--neutral-medium);
-    margin-bottom: var(--space-lg); 
+    margin-bottom: var(--space-lg);
     flex-grow: 1;
     line-height: 1.6;
 }
 
 .deal-card .view-deal-btn { /* Changed class name */
     background: var(--primary-green);
-    color: var(--primary-green-accessible-text); 
+    color: var(--primary-green-accessible-text);
     border: none;
     padding: var(--space-sm) var(--space-lg); /* Adjusted padding */
     text-align: center;
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     display: inline-flex; /* Changed to inline-flex */
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
     font-size: 0.9em; /* Adjusted size */
-    font-weight: 700; 
+    font-weight: 700;
     font-family: var(--font-primary);
     border-radius: var(--border-radius-md);
     cursor: pointer;
@@ -445,11 +445,11 @@ a:focus-visible {
     box-shadow: var(--shadow-sm);
 }
 .deal-card .view-deal-btn i {
-    font-size: 0.9em; 
-    color: var(--primary-green-accessible-text); 
+    font-size: 0.9em;
+    color: var(--primary-green-accessible-text);
 }
 .deal-card .view-deal-btn:hover, .deal-card .view-deal-btn:focus-visible {
-    background-color: var(--primary-green-dark); 
+    background-color: var(--primary-green-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     outline: none;
@@ -580,6 +580,39 @@ a:focus-visible {
     .contact-form-wrapper {
         padding: var(--space-md);
     }
+}
+
+/* ==========================================================================
+   Validation and Error/Success Message Styles
+   ========================================================================== */
+
+.invalid-field {
+    border-color: #E74C3C !important; /* A distinct red color */
+    /* Consider a subtle box-shadow for more emphasis if needed:
+       box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important; */
+}
+
+.error-message { /* Matches class used in validation.js */
+    display: block; /* Ensures it takes its own line or space */
+    color: #E74C3C; /* Same red as the border */
+    font-size: 0.875em; /* Slightly smaller than normal text */
+    margin-top: 5px; /* Space above the error message */
+    /* Optional: Add a small icon or other styling
+       padding-left: 20px;
+       background: url('path/to/error-icon.svg') no-repeat left center;
+       background-size: 14px 14px;
+    */
+}
+
+.success-message {
+    color: #2ECC71; /* A green color */
+    background-color: #E8F5E9; /* Light green background */
+    border: 1px solid #A5D6A7; /* Softer green border */
+    padding: 15px;
+    border-radius: 5px; /* Consistent with var(--border-radius-sm) or var(--border-radius-md) */
+    margin-top: 10px;
+    margin-bottom: 10px; /* Add margin bottom for spacing if multiple messages or elements follow */
+    text-align: center;
 }
 
 /* ==========================================================================
@@ -753,7 +786,7 @@ a:focus-visible {
    Modal Styles
    ========================================================================== */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -767,13 +800,13 @@ a:focus-visible {
     transition: opacity var(--transition-medium), visibility var(--transition-medium);
 }
 .modal.is-open {
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
     opacity: 1;
     visibility: visible;
 }
-.modal-overlay { 
+.modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     cursor: pointer; /* Indicate overlay can be clicked */
@@ -819,15 +852,15 @@ a:focus-visible {
 }
 .modal-image-container {
     width: 100%;
-    max-height: 280px; 
+    max-height: 280px;
     border-radius: var(--border-radius-md);
     overflow: hidden;
     margin-bottom: 0; /* Remove bottom margin, rely on gap */
     border: 1px solid var(--border-color);
 }
 .modal-image-container img { width: 100%; height: 100%; object-fit: contain; } /* Use contain for modal */
-.modal-details h3 { 
-    font-size: 1.6em; 
+.modal-details h3 {
+    font-size: 1.6em;
     margin-bottom: var(--space-xs);
 }
 .modal-business, .modal-best-before, .modal-price-container {
@@ -853,9 +886,9 @@ a:focus-visible {
     color: var(--neutral-dark);
     font-weight: 700;
 }
-#modalContact { 
+#modalContact {
     font-size: 0.95em;
-    word-break: break-word; 
+    word-break: break-word;
 }
 /* WhatsApp button styling remains the same */
 
@@ -1007,10 +1040,10 @@ a:focus-visible {
    Scroll to Top Button
    ========================================================================== */
 #scrollToTopBtn {
-    display: none; 
+    display: none;
     position: fixed;
     bottom: var(--space-lg); /* Adjusted position */
-    right: var(--space-lg); 
+    right: var(--space-lg);
     z-index: 999;
     background-color: var(--primary-green);
     color: var(--primary-green-accessible-text);
@@ -1018,7 +1051,7 @@ a:focus-visible {
     outline: none;
     cursor: pointer;
     padding: 0; /* Remove padding, use width/height/flex */
-    border-radius: 50%; 
+    border-radius: 50%;
     font-size: 1.1em; /* Adjusted */
     width: 48px; /* Adjusted size */
     height: 48px;
@@ -1220,14 +1253,14 @@ a:focus-visible {
 /* ==========================================================================
    No Deals Message & Skeleton Loaders
    ========================================================================== */
-.no-deals-message, .skeleton-card { 
+.no-deals-message, .skeleton-card {
     border-radius: var(--border-radius-lg);
     background-color: var(--bg-card);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color); /* Add border */
 }
-.no-deals-message { 
-    grid-column: 1 / -1; 
+.no-deals-message {
+    grid-column: 1 / -1;
     text-align: center;
     padding: var(--space-xxl) var(--space-xl);
     color: var(--neutral-medium);
@@ -1237,7 +1270,7 @@ a:focus-visible {
     font-size: 3.5em; /* Adjusted */
     display: block;
     margin-bottom: var(--space-lg);
-    color: var(--primary-green-light); 
+    color: var(--primary-green-light);
 }
 .no-deals-message .suggestions {
     margin-top: var(--space-md); /* Less space */
@@ -1250,7 +1283,7 @@ a:focus-visible {
     height: 200px; /* Match card image height */
     background: linear-gradient(100deg, #f0f1f3 30%, #e4e7e9 50%, #f0f1f3 70%); /* Slightly adjusted skeleton color */
     background-size: 400% 100%;
-    animation: pulse-bg-skeleton 1.8s infinite linear; 
+    animation: pulse-bg-skeleton 1.8s infinite linear;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -1271,7 +1304,7 @@ a:focus-visible {
 .skeleton-line.price { width: 40%; height: 1.4em; margin-bottom: var(--space-sm); } /* Price skeleton */
 .skeleton-line.button { width: 120px; height: calc(2 * var(--space-sm) + 1em); margin-top: var(--space-lg); } /* Match button size */
 
-@keyframes pulse-bg-skeleton { 
+@keyframes pulse-bg-skeleton {
     0% { background-position: 150% 0; } /* Adjusted animation */
     100% { background-position: -150% 0; }
 }
@@ -1279,18 +1312,18 @@ a:focus-visible {
 /* ==========================================================================
    Footer
    ========================================================================== */
-.site-footer { 
+.site-footer {
     text-align: center;
-    padding: var(--space-xl) var(--space-lg); 
+    padding: var(--space-xl) var(--space-lg);
     background: var(--bg-header-footer);
-    color: var(--neutral-lightest); 
-    margin-top: var(--space-xxl); 
+    color: var(--neutral-lightest);
+    margin-top: var(--space-xxl);
     font-size: 0.9em; /* Slightly smaller footer text */
     border-top: 4px solid var(--primary-green); /* Add top border accent */
 }
 .site-footer p {
     margin-bottom: var(--space-sm);
-    color: var(--neutral-light); 
+    color: var(--neutral-light);
 }
 .site-footer .footer-links { /* This class is on the <p> tag inside <nav> */
     margin-top: var(--space-sm);
@@ -1299,7 +1332,7 @@ a:focus-visible {
     /* No specific styling for the nav element itself yet, styling is on .footer-links p and a tags */
 }
 .site-footer .footer-links a {
-    color: var(--primary-green-light); 
+    color: var(--primary-green-light);
     font-weight: 600;
     margin: 0 var(--space-sm);
     text-decoration: none;
@@ -1307,13 +1340,13 @@ a:focus-visible {
 .site-footer .footer-links a:hover, .site-footer .footer-links a:focus {
     color: var(--white-text-for-dark-bg);
     text-decoration: underline;
-    outline-color: var(--primary-green); 
+    outline-color: var(--primary-green);
 }
 
 /* ==========================================================================
    Responsive Adjustments
    ========================================================================== */
-@media (max-width: 992px) { 
+@media (max-width: 992px) {
     .container { width: 92%; }
     #deals-container {
         grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); /* Smaller min width */
@@ -1321,8 +1354,8 @@ a:focus-visible {
     }
 }
 
-@media (max-width: 768px) { 
-    body { font-size: 15px; } 
+@media (max-width: 768px) {
+    body { font-size: 15px; }
     .filters { padding: var(--space-lg); gap: var(--space-md); }
     .deal-card-content { padding: var(--space-lg); }
     .deal-card h3 { font-size: 1.15em; }
@@ -1333,25 +1366,25 @@ a:focus-visible {
     .modal-price { font-size: 1.7em; }
 }
 
-@media (max-width: 576px) { 
-    .site-header { padding: var(--space-lg) 0; margin-bottom: var(--space-lg); } 
-    .site-header h1 { font-size: clamp(1.6em, 6vw, 2.2em); } 
-    .site-header p { font-size: clamp(0.9em, 2.5vw, 1em); }    
-    
+@media (max-width: 576px) {
+    .site-header { padding: var(--space-lg) 0; margin-bottom: var(--space-lg); }
+    .site-header h1 { font-size: clamp(1.6em, 6vw, 2.2em); }
+    .site-header p { font-size: clamp(0.9em, 2.5vw, 1em); }
+
     .filters { flex-direction: column; }
-    .search-wrapper, .category-wrapper, .sort-wrapper, .clear-wrapper { 
-        flex-basis: auto; 
+    .search-wrapper, .category-wrapper, .sort-wrapper, .clear-wrapper {
+        flex-basis: auto;
         width: 100%;
-        min-width: 0; 
+        min-width: 0;
         margin-left: 0; /* Reset margin for clear button */
     }
     #deals-container { grid-template-columns: 1fr; gap: var(--space-lg); }
-    .deal-card-image-container { height: 180px; } 
+    .deal-card-image-container { height: 180px; }
     .no-deals-message { font-size: 1.05em; padding: var(--space-xl) var(--space-lg); }
     .no-deals-message i { font-size: 3em; }
-    .site-footer { padding: var(--space-lg); margin-top: var(--space-lg); } 
+    .site-footer { padding: var(--space-lg); margin-top: var(--space-lg); }
 
-    .modal-body { flex-direction: column; } 
+    .modal-body { flex-direction: column; }
     .modal-image-container { flex-basis: auto; max-height: 180px; } /* Smaller modal image */
     .modal-details h3 { font-size: 1.3em; }
     .modal-price { font-size: 1.6em; }

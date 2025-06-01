@@ -459,6 +459,51 @@ a:focus-visible {
     box-shadow: var(--shadow-inset);
 }
 
+/* --- PWA Update Notification --- */
+.update-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--neutral-darkest);
+    color: var(--white-text-for-dark-bg);
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 2000; /* High z-index */
+    display: flex; /* Will be set by JS */
+    align-items: center;
+    gap: var(--space-md);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0; /* Initially hidden via opacity for transition */
+    transform: translateX(-50%) translateY(20px); /* Start off-screen for slide-in */
+}
+
+.update-notification.show {
+    display: flex;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.update-notification p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+/* Re-using .button-style for consistency, but can be more specific if needed */
+.update-notification #refreshAppBtn {
+    padding: var(--space-xs) var(--space-sm); /* Smaller padding */
+    font-size: 0.85em;
+    text-transform: none; /* No uppercase */
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+.update-notification #refreshAppBtn:hover,
+.update-notification #refreshAppBtn:focus {
+    background-color: var(--primary-green-dark);
+    border-color: var(--primary-green-dark);
+}
+
 /* ==========================================================================
    Modal Styles
    ========================================================================== */

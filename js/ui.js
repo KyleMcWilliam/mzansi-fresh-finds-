@@ -206,3 +206,32 @@ export function setFilterValues(filters) {
     if (categoryFilter && typeof filters.category !== 'undefined') categoryFilter.value = filters.category;
     if (sortDealsSelect && typeof filters.sortBy !== 'undefined') sortDealsSelect.value = filters.sortBy;
 }
+
+// --- PWA Update Notification UI ---
+export function showUpdateNotification() {
+    const notificationDiv = document.getElementById('updateNotification');
+    const refreshButton = document.getElementById('refreshAppBtn');
+
+    if (notificationDiv && refreshButton) {
+        notificationDiv.style.display = 'flex'; // Make it visible
+        setTimeout(() => { // Allow display property to take effect before transition
+            notificationDiv.classList.add('show');
+        }, 10);
+
+
+        refreshButton.addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        // Optional: Allow dismissing the notification (not in current plan, but good for UX)
+        // const dismissButton = document.createElement('button');
+        // ... setup dismiss button ...
+        // notificationDiv.appendChild(dismissButton);
+        // dismissButton.addEventListener('click', () => {
+        // notificationDiv.classList.remove('show');
+        // setTimeout(() => notificationDiv.style.display = 'none', 300); // Hide after transition
+        // });
+    } else {
+        console.warn('PWA update notification elements not found.');
+    }
+}

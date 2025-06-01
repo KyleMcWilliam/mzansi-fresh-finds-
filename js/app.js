@@ -22,7 +22,7 @@ function registerServiceWorker() {
                     console.log('[SW] Update found. New worker installing.');
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            console.log('[SW] New content available. Refresh recommended.');
+                            ui.showUpdateNotification();
                         }
                     });
                 });

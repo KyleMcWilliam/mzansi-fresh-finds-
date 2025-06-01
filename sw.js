@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mzansi-fresh-finds-v6';
+const CACHE_NAME = 'mzansi-fresh-finds-v7';
 const urlsToCache = [
     '/', 
     '/index.html',

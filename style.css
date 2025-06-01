@@ -459,6 +459,128 @@ a:focus-visible {
     box-shadow: var(--shadow-inset);
 }
 
+/* ==========================================================================
+   Business Portal Listings
+   ========================================================================== */
+#business-listings-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    background-color: var(--bg-card); /* Optional: if you want a slightly different bg for the container */
+    box-shadow: var(--shadow-sm);
+}
+
+.listing-item {
+    background-color: var(--bg-page); /* Slightly different from card bg for contrast or use --bg-card */
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top */
+    gap: var(--space-md);
+    transition: box-shadow var(--transition-medium);
+}
+
+.listing-item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.listing-item-content {
+    flex-grow: 1; /* Takes up available space */
+    flex-basis: 300px; /* Minimum width before wrapping */
+}
+
+.listing-item-name {
+    font-family: var(--font-primary);
+    font-size: 1.3em;
+    color: var(--neutral-darkest);
+    margin-bottom: var(--space-sm);
+}
+
+.listing-item-details {
+    font-size: 0.95em;
+    color: var(--neutral-medium);
+    margin-bottom: var(--space-xs);
+    line-height: 1.5;
+}
+
+.listing-item-details strong {
+    color: var(--neutral-dark);
+    font-weight: 600;
+}
+
+.listing-item-details.original-price-display { /* Style for the strikethrough original price */
+    font-size: 0.85em;
+    color: var(--neutral-light);
+    margin-top: -var(--space-xs); /* Pull it a bit closer to the discounted price */
+    margin-bottom: var(--space-sm);
+}
+
+.listing-item-details[data-field="description"] { /* If we add a data-field attribute in JS */
+    white-space: pre-line; /* Respect newlines in description if any */
+    line-height: 1.6;
+}
+
+.listing-item-actions {
+    display: flex;
+    gap: var(--space-md); /* Increased gap slightly */
+    align-items: center; /* Align buttons vertically if they wrap */
+    flex-shrink: 0; /* Prevent buttons from shrinking too much */
+    flex-basis: auto; /* Let them size based on content */
+    margin-top: var(--space-sm); /* Add some space if content above is short */
+}
+
+/* Styling for Edit and Delete buttons within a listing */
+.listing-item-actions .button-style {
+    padding: var(--space-sm) var(--space-md); /* Smaller padding for action buttons */
+    font-size: 0.85em;
+    text-transform: none; /* Or keep uppercase if preferred */
+}
+
+.button-edit {
+    background-color: var(--accent-yellow);
+    border-color: var(--accent-yellow);
+    color: var(--neutral-darkest); /* Ensure contrast */
+}
+.button-edit:hover, .button-edit:focus {
+    background-color: #d39e00; /* Darker yellow */
+    border-color: #d39e00;
+    color: var(--neutral-darkest);
+}
+
+.button-delete {
+    background-color: var(--accent-orange); /* Or a red like #E74C3C */
+    border-color: var(--accent-orange);
+    color: var(--white-text-for-dark-bg);
+}
+.button-delete:hover, .button-delete:focus {
+    background-color: #c0392b; /* Darker red/orange */
+    border-color: #c0392b;
+    color: var(--white-text-for-dark-bg);
+}
+
+/* Ensure the main "Add New Listing" button is prominent */
+.action-buttons .button-style#addNewListingBtn {
+    padding: var(--space-md) var(--space-xl); /* Make it larger */
+    font-size: 1.1em; /* Make text larger */
+}
+
+#no-listings-message {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--neutral-medium);
+    font-style: italic;
+    margin-top: var(--space-md); /* Add some margin if it's the only thing visible */
+    margin-bottom: var(--space-md);
+}
+
 /* --- PWA Update Notification --- */
 .update-notification {
     position: fixed;
@@ -613,6 +735,150 @@ a:focus-visible {
     word-break: break-word; 
 }
 /* WhatsApp button styling remains the same */
+
+/* ==========================================================================
+   Add/Edit Listing Modal (#listingModal)
+   ========================================================================== */
+
+/* General modal styles are already present (.modal, .modal-overlay, .modal-content, .modal-close)
+   We can reuse them and add specific styles for the form structure if needed.
+   The #listingModal ID will be used to target it specifically if needed,
+   but for now, we assume the generic .modal class provides the base.
+*/
+
+#listingModal .modal-content {
+    max-width: 700px; /* Slightly wider for form content */
+}
+
+#listingModal .modal-title {
+    margin-bottom: var(--space-lg);
+    text-align: center;
+    font-size: 1.5em; /* Adjust as needed */
+}
+
+#listingForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+#listingForm .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+#listingForm .form-row {
+    display: flex;
+    gap: var(--space-lg);
+}
+
+#listingForm .form-row .form-group {
+    flex: 1; /* Makes form groups in a row take equal width */
+}
+
+#listingForm label {
+    font-weight: 600;
+    color: var(--neutral-dark);
+    font-size: 0.9em;
+}
+
+#listingForm input[type="text"],
+#listingForm input[type="number"],
+#listingForm input[type="date"],
+#listingForm textarea,
+#listingForm select {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: 1em;
+    font-family: var(--font-secondary);
+    color: var(--neutral-dark);
+    background-color: var(--bg-page);
+    transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+#listingForm input[type="text"]:focus,
+#listingForm input[type="number"]:focus,
+#listingForm input[type="date"]:focus,
+#listingForm textarea:focus,
+#listingForm select:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+}
+
+#listingForm textarea {
+    resize: vertical; /* Allow vertical resize, disable horizontal */
+    min-height: 80px;
+}
+
+#listingForm select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237F8C8D' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-md) center;
+    background-size: 0.9em 0.9em;
+    padding-right: calc(var(--space-md) * 3);
+}
+#listingForm select:required:invalid {
+    color: var(--neutral-light); /* Style for the placeholder option */
+}
+
+#listingForm .form-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+#listingForm .button-style {
+    /* General button styles are already defined */
+}
+
+#listingForm .button-cancel {
+    background-color: var(--neutral-lightest);
+    border-color: var(--neutral-lightest);
+    color: var(--neutral-darkest);
+}
+#listingForm .button-cancel:hover,
+#listingForm .button-cancel:focus {
+    background-color: var(--neutral-light);
+    border-color: var(--neutral-light);
+    color: var(--neutral-darkest); /* Ensure text color changes for contrast if bg becomes too light */
+}
+
+#listingForm input[type="date"] {
+    min-height: calc(var(--space-sm)*2 + 1em + 2px); /* Ensure date input has similar height to text inputs */
+}
+
+
+/* Responsive adjustments for the form modal if needed */
+@media (max-width: 576px) {
+    #listingModal .modal-content {
+        max-width: 95%;
+        padding: var(--space-lg);
+    }
+    #listingForm .form-row {
+        flex-direction: column; /* Stack elements in a row on small screens */
+        gap: var(--space-lg); /* Keep the gap for stacked elements */
+    }
+    #listingForm .form-actions {
+        flex-direction: column; /* Stack buttons on small screens */
+        gap: var(--space-sm); /* Reduce gap for stacked buttons */
+    }
+    #listingForm .form-actions .button-style {
+        width: 100%; /* Make buttons full width when stacked */
+        margin-bottom: var(--space-xs); /* Add small margin between stacked buttons */
+    }
+    #listingForm .form-actions .button-style:last-child {
+        margin-bottom: 0;
+    }
+}
 
 /* ==========================================================================
    Scroll to Top Button

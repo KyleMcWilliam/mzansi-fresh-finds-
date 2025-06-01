@@ -1,4 +1,5 @@
 // js/business-portal.js
+import { isValidEmail, isNotEmpty, isPasswordComplex, displayError, clearError, clearAllErrors } from './validation.js';
 
 // --- Helper: Check current page ---
 function isPage(pageName) {
@@ -110,41 +111,117 @@ async function loadInitialListings() {
 // --- Login Form Handling ---
 export function handleLoginFormSubmit(event) {
     event.preventDefault();
-    console.log("Login form submitted");
-    const email = loginForm.querySelector('#login-email').value;
-    const password = loginForm.querySelector('#login-password').value;
+    clearAllErrors(loginForm); // Clear previous errors
 
-    if (email && password) {
-        // Placeholder: Simulate successful login
-        alert("Login successful (placeholder)!");
-        window.location.href = 'business-dashboard.html';
-    } else {
-        alert("Please enter email and password.");
+    let isValid = true;
+
+    // Validate Login Email
+    const emailInput = document.getElementById('login-email');
+    if (emailInput && !isNotEmpty(emailInput.value)) {
+        displayError(emailInput, 'Email is required.');
+        isValid = false;
+    } else if (emailInput && !isValidEmail(emailInput.value)) {
+        displayError(emailInput, 'Please enter a valid email address.');
+        isValid = false;
+    } else if (!emailInput) {
+        console.warn('Login email input not found');
+        isValid = false;
+    }
+
+    // Validate Login Password
+    const passwordInput = document.getElementById('login-password');
+    if (passwordInput && !isNotEmpty(passwordInput.value)) {
+        displayError(passwordInput, 'Password is required.');
+        isValid = false;
+    } else if (!passwordInput) {
+        console.warn('Login password input not found');
+        isValid = false;
+    }
+
+    if (isValid) {
+        // Display mock success message
+        const formContainer = loginForm.closest('.form-container');
+        if (formContainer) {
+            formContainer.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Login successful! Redirecting...</p>';
+        } else {
+            loginForm.innerHTML = '<p class="success-message" style="color: green;">Login successful! Redirecting...</p>';
+        }
+        // In a real app, you'd proceed with actual login logic here.
+        // For placeholder, redirect after a short delay
+        setTimeout(() => {
+            window.location.href = 'business-dashboard.html';
+        }, 1500);
     }
 }
 
 // --- Signup Form Handling ---
 export function handleSignupFormSubmit(event) {
     event.preventDefault();
-    console.log("Signup form submitted");
-    const businessName = signupForm.querySelector('#signup-business-name').value;
-    const email = signupForm.querySelector('#signup-email').value;
-    const password = signupForm.querySelector('#signup-password').value;
-    const confirmPassword = signupForm.querySelector('#signup-confirm-password').value;
+    clearAllErrors(signupForm); // Clear previous errors
 
-    if (!businessName || !email || !password || !confirmPassword) {
-        alert("Please fill all fields.");
-        return;
+    let isValid = true;
+
+    // Validate Business Name
+    const businessNameInput = document.getElementById('signup-business-name');
+    if (businessNameInput && !isNotEmpty(businessNameInput.value)) {
+        displayError(businessNameInput, 'Business name is required.');
+        isValid = false;
+    } else if (!businessNameInput) {
+        console.warn('Signup business name input not found');
+        isValid = false;
     }
 
-    if (password !== confirmPassword) {
-        alert("Passwords do not match.");
-        return;
+    // Validate Email
+    const emailInput = document.getElementById('signup-email');
+    if (emailInput && !isNotEmpty(emailInput.value)) {
+        displayError(emailInput, 'Email is required.');
+        isValid = false;
+    } else if (emailInput && !isValidEmail(emailInput.value)) {
+        displayError(emailInput, 'Please enter a valid email address.');
+        isValid = false;
+    } else if (!emailInput) {
+        console.warn('Signup email input not found');
+        isValid = false;
     }
 
-    // Placeholder: Simulate successful signup
-    alert("Signup successful (placeholder)! Redirecting to dashboard.");
-    window.location.href = 'business-dashboard.html';
+    // Validate Password
+    const passwordInput = document.getElementById('signup-password');
+    if (passwordInput && !isNotEmpty(passwordInput.value)) {
+        displayError(passwordInput, 'Password is required.');
+        isValid = false;
+    } else if (passwordInput && !isPasswordComplex(passwordInput.value, 8)) { // Assuming minLength 8
+        displayError(passwordInput, 'Password must be at least 8 characters long.');
+        isValid = false;
+    } else if (!passwordInput) {
+        console.warn('Signup password input not found');
+        isValid = false;
+    }
+
+    // Validate Confirm Password
+    const confirmPasswordInput = document.getElementById('signup-confirm-password');
+    if (confirmPasswordInput && !isNotEmpty(confirmPasswordInput.value)) {
+        displayError(confirmPasswordInput, 'Please confirm your password.');
+        isValid = false;
+    } else if (passwordInput && confirmPasswordInput && confirmPasswordInput.value !== passwordInput.value) {
+        displayError(confirmPasswordInput, 'Passwords do not match.');
+        isValid = false;
+    } else if (!confirmPasswordInput) {
+        console.warn('Signup confirm password input not found');
+        isValid = false;
+    }
+
+    if (isValid) {
+        // Display mock success message
+        const formContainer = signupForm.closest('.form-container');
+        if (formContainer) {
+            formContainer.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Sign-up successful! Please login.</p>';
+        } else {
+            signupForm.innerHTML = '<p class="success-message" style="color: green;">Sign-up successful! Please login.</p>';
+        }
+        // In a real app, you'd proceed with actual signup logic here.
+        // For instance, you might clear the form or redirect to login.
+        // signupForm.reset(); // Optionally reset the form
+    }
 }
 
 

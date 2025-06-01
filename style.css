@@ -460,6 +460,39 @@ a:focus-visible {
 }
 
 /* ==========================================================================
+   Validation and Error/Success Message Styles
+   ========================================================================== */
+
+.invalid-field {
+    border-color: #E74C3C !important; /* A distinct red color */
+    /* Consider a subtle box-shadow for more emphasis if needed:
+       box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important; */
+}
+
+.error-message { /* Matches class used in validation.js */
+    display: block; /* Ensures it takes its own line or space */
+    color: #E74C3C; /* Same red as the border */
+    font-size: 0.875em; /* Slightly smaller than normal text */
+    margin-top: 5px; /* Space above the error message */
+    /* Optional: Add a small icon or other styling
+       padding-left: 20px;
+       background: url('path/to/error-icon.svg') no-repeat left center;
+       background-size: 14px 14px;
+    */
+}
+
+.success-message {
+    color: #2ECC71; /* A green color */
+    background-color: #E8F5E9; /* Light green background */
+    border: 1px solid #A5D6A7; /* Softer green border */
+    padding: 15px;
+    border-radius: 5px; /* Consistent with var(--border-radius-sm) or var(--border-radius-md) */
+    margin-top: 10px;
+    margin-bottom: 10px; /* Add margin bottom for spacing if multiple messages or elements follow */
+    text-align: center;
+}
+
+/* ==========================================================================
    Business Portal Listings
    ========================================================================== */
 #business-listings-container {

@@ -1,5 +1,6 @@
 // Main application orchestrator
 import { FILTERS_STORAGE_KEY } from './config.js';
+import { isValidEmail, isNotEmpty, displayError, clearError, clearAllErrors } from './validation.js';
 import * as deals from './deals.js';
 import * as ui from './ui.js';
 import * as modal from './modal.js';
@@ -139,6 +140,55 @@ async function initializeApp() {
     applyAndSaveFilters(); // Perform initial filter and render
 
     initializeScrollToTop(); // Setup scroll-to-top button functionality
+
+    // Contact Form Validation
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            clearAllErrors(contactForm); // Clear previous errors
+
+            let isValid = true;
+
+            // Validate Name
+            const nameInput = document.getElementById('contactName');
+            if (nameInput && !isNotEmpty(nameInput.value)) {
+                displayError(nameInput, 'Name is required.');
+                isValid = false;
+            }
+
+            // Validate Email
+            const emailInput = document.getElementById('contactEmail');
+            if (emailInput) {
+                if (!isNotEmpty(emailInput.value)) {
+                    displayError(emailInput, 'Email is required.');
+                    isValid = false;
+                } else if (!isValidEmail(emailInput.value)) {
+                    displayError(emailInput, 'Please enter a valid email address.');
+                    isValid = false;
+                }
+            }
+
+            // Validate Message
+            const messageInput = document.getElementById('contactMessage');
+            if (messageInput && !isNotEmpty(messageInput.value)) {
+                displayError(messageInput, 'Message is required.');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Display success message
+                const formWrapper = contactForm.closest('.contact-form-wrapper');
+                if (formWrapper) {
+                    formWrapper.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Message sent successfully! Your message has been received.</p>';
+                } else {
+                    // Fallback if structure is different
+                    contactForm.innerHTML = '<p class="success-message" style="color: green;">Message sent successfully!</p>';
+                }
+                // Optionally, reset the form if it wasn't replaced: contactForm.reset();
+            }
+        });
+    }
 
     console.log("Mzansi Fresh Finds Initialized (Modular)!");
 }

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "static1",
+    "itemName": "Artisan Sourdough Bread",
+    "description": "Freshly baked artisan sourdough bread, perfect for sandwiches or toast. Made with organic flour.",
+    "category": "Bakery",
+    "price": 45.00,
+    "originalPrice": 60.00,
+    "quantity": "1 loaf",
+    "pickupLocation": "The Corner Bakery, 123 Main Rd, Anytown",
+    "expiryDate": "2024-03-15"
+  },
+  {
+    "id": "static2",
+    "itemName": "Organic Apple Box",
+    "description": "A box of crisp and juicy organic apples, mixed varieties. Ideal for snacking or baking.",
+    "category": "Fruit & Veg",
+    "price": 70.00,
+    "quantity": "2 kg box",
+    "pickupLocation": "Green Grocer, Oak Avenue, Anytown",
+    "expiryDate": "2024-03-20"
+  },
+  {
+    "id": "static3",
+    "itemName": "Free-Range Eggs",
+    "description": "Farm fresh free-range eggs from happy chickens. Excellent for breakfast.",
+    "category": "Dairy",
+    "price": 30.00,
+    "quantity": "1 dozen",
+    "pickupLocation": "Happy Farm Stall, Route 66, Near Anytown",
+    "expiryDate": "2024-03-25"
+  },
+  {
+    "id": "static4",
+    "itemName": "Homemade Vegetable Soup",
+    "description": "Delicious and hearty homemade vegetable soup, ready to heat and eat. Contains no preservatives.",
+    "category": "Prepared Meals",
+    "price": 55.00,
+    "originalPrice": 70.00,
+    "quantity": "1 liter tub",
+    "pickupLocation": "The Corner Bakery, 123 Main Rd, Anytown",
+    "expiryDate": "2024-03-12"
+  }
+]

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List Your Business - Mzansi Fresh Finds</title>
+    <title>Business Portal - Mzansi Fresh Finds</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="/images/icons/icon-192x192.png" type="image/png">
     <meta name="theme-color" content="#27AE60">
-    <meta name="description" content="Join Mzansi Fresh Finds! List your near-dated food items, reduce waste, recover costs, and reach new local customers. Sign up your business today.">
+    <meta name="description" content="Manage your listings and connect with customers on Mzansi Fresh Finds.">
 </head>
 <body>
     <a href="#main-content" class="skip-to-content">Skip to main content</a>
@@ -27,56 +27,18 @@
     <main id="main-content">
         <div class="container content-page">
             <section class="fade-in">
-                <h2>List Your Business & Reduce Waste</h2>
-                <p>Are you a local bakery, grocer, cafe, restaurant, butcher, or market vendor looking to reduce food waste and recover value from items nearing their best before date? Mzansi Fresh Finds connects you with savvy local shoppers!</p>
+                <h2>Manage Your Listings</h2>
                 
-                <h3>Why List With Us?</h3>
-                <ul>
-                    <li><strong>Reduce Waste, Recover Costs:</strong> Sell surplus stock that might otherwise be discarded.</li>
-                    <li><strong>Reach New Local Customers:</strong> Attract bargain hunters and eco-conscious shoppers in your area.</li>
-                    <li><strong>Simple Listing Process:</strong> (Future Feature) Our platform will make it quick and easy to post your deals.</li>
-                    <li><strong>Free to List (Currently):</strong> During our initial phase, listing deals will be free for participating businesses.</li>
-                    <li><strong>It's Good for the Community & Planet:</strong> Play your part in tackling food waste in South Africa.</li>
-                </ul>
+                <div id="business-listings-container">
+                    <!-- Listings will be dynamically injected here by js/business-portal.js -->
+                    <!-- Message for no listings - to be shown/hidden by JS -->
+                    <p id="no-listings-message" style="display: block;">You currently have no active listings. Click "Add New Listing" to get started!</p>
+                </div>
 
-                <h3>Sign Up for Early Access / Information</h3>
-                <p>Our dedicated business portal and sign-up process are currently under development. Register your interest below, and we'll notify you as soon as it's ready. Early registrants may get priority access!</p>
-
-                <!-- Business Signup Form - Setup for Formspree -->
-                <!-- 1. Go to formspree.io and create a new form. -->
-                <!-- 2. Replace 'YOUR_UNIQUE_FORM_ID' below with your actual Formspree form ID. -->
-                <!-- 3. After the first submission, Formspree will send a confirmation email to the email address associated with your Formspree account. Click the link in that email to activate the form. -->
-                <form action="https://formspree.io/f/YOUR_OTHER_UNIQUE_FORM_ID" method="POST" id="businessSignupForm">
-                     <div class="form-group">
-                        <label for="businessName">Business Name:</label>
-                        <input type="text" id="businessName" name="businessName" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="businessType">Type of Business (e.g., Bakery, Grocer):</label>
-                        <input type="text" id="businessType" name="businessType">
-                    </div>
-                     <div class="form-group">
-                        <label for="contactPerson">Contact Person:</label>
-                        <input type="text" id="contactPerson" name="contactPerson" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="businessEmail">Business Email:</label>
-                        <input type="email" id="businessEmail" name="businessEmail" required>
-                    </div>
-                     <input type="hidden" name="_subject" value="New Business Signup Interest from Mzansi Fresh Finds"> <!-- For Formspree: sets email subject -->
-                     <div class="form-group">
-                        <label for="businessPhone">Business Phone (Optional):</label>
-                        <input type="tel" id="businessPhone" name="businessPhone">
-                    </div>
-                     <div class="form-group">
-                        <label for="businessLocation">Primary Location/Area:</label>
-                        <input type="text" id="businessLocation" name="businessLocation" placeholder="e.g., Melville, Johannesburg" required>
-                    </div>
-                    
-                    <button type="submit" class="button-style">Register Interest</button>
-                    <p style="font-size: 0.8em; margin-top: var(--space-sm);">*Submissions are handled by Formspree. You'll need to confirm your email with them after the first submission to activate this form.</p>
-                </form>
-
+                <div class="action-buttons" style="margin-top: var(--space-md);">
+                    <button type="button" class="button-style" id="addNewListingBtn">Add New Listing</button>
+                    <!-- More buttons can be added here as needed, e.g., "View Analytics", "Edit Profile" -->
+                </div>
             </section>
         </div>
     </main>
@@ -89,12 +51,75 @@
                     <a href="about.html">About Us</a> |
                     <a href="contact.html">Contact</a> |
                     <a href="privacy.html">Privacy Policy</a> |
-                    List Your Business
+                    Business Portal
                 </p>
             </nav>
         </div>
     </footer>
 
     <script type="module" src="js/app.js"></script>
+    <!-- Placeholder for business portal specific JavaScript, if needed later -->
+    <script type="module" src="js/business-portal.js"></script>
+
+    <!-- Add/Edit Listing Modal -->
+    <div id="listingModal" class="modal" aria-labelledby="listingModalTitle" aria-hidden="true" role="dialog">
+        <div class="modal-overlay" tabindex="-1" data-close-modal></div>
+        <div class="modal-content" role-document">
+            <button class="modal-close" aria-label="Close modal" data-close-modal>&times;</button>
+            <h2 id="listingModalTitle" class="modal-title">Add/Edit Listing</h2>
+            <form id="listingForm">
+                <div class="form-group">
+                    <label for="itemName">Item Name:</label>
+                    <input type="text" id="itemName" name="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemDescription">Description:</label>
+                    <textarea id="itemDescription" name="itemDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="itemCategory">Category:</label>
+                    <select id="itemCategory" name="itemCategory" required>
+                        <option value="" disabled selected>Select a category...</option>
+                        <option value="bakery">Bakery</option>
+                        <option value="dairy">Dairy</option>
+                        <option value="fruit-veg">Fruit & Veg</option>
+                        <option value="meat">Meat</option>
+                        <option value="pantry">Pantry Staples</option>
+                        <option value="prepared">Prepared Meals</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemPrice">Original Price (R):</label>
+                        <input type="number" id="itemPrice" name="itemPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDiscountedPrice">Discounted Price (R):</label>
+                        <input type="number" id="itemDiscountedPrice" name="itemDiscountedPrice" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemQuantity">Quantity:</label>
+                        <input type="text" id="itemQuantity" name="itemQuantity" placeholder="e.g., 10 units, 5 kg" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemExpiryDate">Expiry Date:</label>
+                        <input type="date" id="itemExpiryDate" name="itemExpiryDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="itemPickupLocation">Pickup Location:</label>
+                    <input type="text" id="itemPickupLocation" name="itemPickupLocation" placeholder="e.g., Your Business Address" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="button-style" id="saveListingBtn">Save Listing</button>
+                    <button type="button" class="button-style button-cancel" data-close-modal>Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

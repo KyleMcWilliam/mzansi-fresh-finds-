@@ -1,11 +1,18 @@
 // Global variables
 let allProducts = [];
+let allDeals = []; // To store fetched deals
+
+// Import functions from deals.js and ui.js
+import { fetchDeals, getFilteredAndSortedDeals, getDealById } from './deals.js';
+import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals } from './ui.js';
 
 // DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
     // Check if we are on the products page by looking for the product-listing element
     if (document.getElementById('product-listing')) {
         initProductsPage();
+    } else if (document.getElementById('deals-container')) { // Check for deals page
+        initDealsPage();
     }
     // Other page initializations can go here if needed in the future
     // e.g., if (document.getElementById('home-specific-element')) initHomePage();
@@ -33,6 +40,94 @@ function initProductsPage() {
         // If fetchProductsAndRender fails, log it, product interactions won't work.
         console.error("Failed to initialize products page due to fetch error:", error);
     });
+}
+
+/**
+ * Initializes functionality specific to the deals page.
+ */
+async function initDealsPage() {
+    console.log("Initializing deals page...");
+    initUI(filterAndRenderDeals, clearAllFiltersAndRender, handleViewDeal);
+
+    // Initial load of deals
+    await filterAndRenderDeals();
+}
+
+/**
+ * Fetches, filters, sorts, and renders deals based on current UI selections.
+ */
+async function filterAndRenderDeals() {
+    console.log("filterAndRenderDeals called");
+    showSkeletonLoaders(); // Show placeholders while loading
+
+    const { searchTerm, category, sortBy } = getFilterValues();
+    updateCategoryFilterVisuals(category); // Update visual cue for category filter
+
+    try {
+        // Fetch all deals if not already fetched or if a refresh is needed.
+        // For now, let's assume deals.js handles caching or always fetches.
+        // If allDeals is empty, it implies it's the first fetch or a cache miss.
+        if (allDeals.length === 0) {
+            allDeals = await fetchDeals('data/deals.json'); // Path to your deals data
+        }
+
+        const dealsToDisplay = getFilteredAndSortedDeals(searchTerm, category, sortBy);
+        renderDeals(dealsToDisplay, searchTerm, category);
+
+        if (dealsToDisplay.length === 0) {
+            showNoDealsMessage(searchTerm, category);
+        }
+    } catch (error) {
+        console.error("Error fetching or rendering deals:", error);
+        // Optionally, display a more user-friendly error message in the UI
+        const dealsContainer = document.getElementById('deals-container');
+        if (dealsContainer) {
+            dealsContainer.innerHTML = '<p class="error-message">Could not load deals. Please try again later.</p>';
+        }
+    }
+}
+
+/**
+ * Clears all filter inputs and re-renders the deals.
+ */
+async function clearAllFiltersAndRender() {
+    console.log("clearAllFiltersAndRender called");
+    // Reset UI filter elements using setFilterValues from ui.js
+    setFilterValues({ searchTerm: '', category: 'all', sortBy: 'default' });
+
+    // Potentially clear any stored preferences if implemented
+    // localStorage.removeItem('dealFilters');
+
+    updateCategoryFilterVisuals('all'); // Reset category filter visual cue
+
+    await filterAndRenderDeals(); // Re-fetch and render with cleared filters
+}
+
+/**
+ * Handles the action when a user wants to view details of a specific deal.
+ * @param {string} dealId - The ID of the deal to view.
+ */
+async function handleViewDeal(dealId) {
+    console.log(`handleViewDeal called for deal ID: ${dealId}`);
+    try {
+        // Ensure deals are loaded before trying to get one by ID
+        if (allDeals.length === 0) {
+           allDeals = await fetchDeals('data/deals.json');
+        }
+        const deal = getDealById(dealId); // Assumes getDealById is synchronous after deals are fetched
+        if (deal) {
+            console.log("Deal details:", deal);
+            // TODO: Implement modal display logic here
+            // For now, just logging. Example:
+            alert(`Deal Details:\nName: ${deal.itemName}\nBusiness: ${deal.businessName}\nPrice: R${deal.discountedPrice}`);
+        } else {
+            console.warn(`Deal with ID ${dealId} not found.`);
+            alert("Sorry, this deal could not be found.");
+        }
+    } catch (error) {
+        console.error("Error handling view deal:", error);
+        alert("An error occurred while trying to view the deal details.");
+    }
 }
 
 /**
@@ -137,40 +232,61 @@ function renderProducts(productsToRender, containerElement) {
     }
 
     productsToRender.forEach(product => {
-        const card = document.createElement('article');
-        card.classList.add('product-card');
+        const card = document.createElement('div'); // Changed from article to div
+        card.classList.add('deal-card'); // Changed class to 'deal-card' for consistency
+        // card.classList.add('product-page-card'); // Optional: for product-specific tweaks via CSS later
 
+        // Image container and image
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('deal-card-image-container');
         const image = document.createElement('img');
         image.src = product.imageUrl || 'images/placeholders/default.svg'; // Fallback image
         image.alt = product.name;
-        image.classList.add('product-image');
+        // No specific class needed for img if deal-card-image-container styles cover it in style.css
+        // image.classList.add('product-image');
+        imageContainer.appendChild(image);
+
+        // Content container
+        const contentContainer = document.createElement('div');
+        contentContainer.classList.add('deal-card-content');
 
         const nameHeading = document.createElement('h3');
-        nameHeading.classList.add('product-name');
+        // No specific class needed if deal-card h3 style is sufficient
+        // nameHeading.classList.add('product-name');
         nameHeading.textContent = product.name;
 
-        const pricePara = document.createElement('p');
-        pricePara.classList.add('product-price');
-        pricePara.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+        // Price container and price (mimicking deal card structure)
+        const priceContainer = document.createElement('div');
+        priceContainer.classList.add('price-container');
+        const priceSpan = document.createElement('span');
+        priceSpan.classList.add('price'); // Use 'price' class like in deal-card
+        priceSpan.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+        priceContainer.appendChild(priceSpan);
+        // Products don't have originalPrice in the provided data structure, so we omit it
 
         const categoryPara = document.createElement('p');
-        categoryPara.classList.add('product-category');
+        categoryPara.classList.add('product-meta-info'); // A generic class for meta items
         categoryPara.innerHTML = `Category: <span>${product.category}</span>`;
 
         const farmerPara = document.createElement('p');
-        farmerPara.classList.add('product-farmer');
+        farmerPara.classList.add('product-meta-info'); // A generic class for meta items
         farmerPara.innerHTML = `Sold by: <span>${product.farmer}</span>`;
 
         const descriptionPara = document.createElement('p');
-        descriptionPara.classList.add('product-description');
+        descriptionPara.classList.add('description'); // Use 'description' class like in deal-card
         descriptionPara.textContent = product.description;
 
-        card.appendChild(image);
-        card.appendChild(nameHeading);
-        card.appendChild(pricePara);
-        card.appendChild(categoryPara);
-        card.appendChild(farmerPara);
-        card.appendChild(descriptionPara);
+        // Assemble content
+        contentContainer.appendChild(nameHeading);
+        contentContainer.appendChild(priceContainer); // Add price container
+        contentContainer.appendChild(categoryPara);
+        contentContainer.appendChild(farmerPara);
+        contentContainer.appendChild(descriptionPara);
+        // No "View Deal" button for products as per original structure
+
+        // Assemble card
+        card.appendChild(imageContainer);
+        card.appendChild(contentContainer);
 
         containerElement.appendChild(card);
     });

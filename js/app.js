@@ -232,18 +232,18 @@ function renderProducts(productsToRender, containerElement) {
     }
 
     productsToRender.forEach(product => {
-        const card = document.createElement('div'); // Changed from article to div
-        card.classList.add('deal-card'); // Changed class to 'deal-card' for consistency
-        // card.classList.add('product-page-card'); // Optional: for product-specific tweaks via CSS later
+        const card = document.createElement('div');
+        card.classList.add('deal-card');
+        // card.classList.add('product-page-card');
 
         // Image container and image
         const imageContainer = document.createElement('div');
         imageContainer.classList.add('deal-card-image-container');
         const image = document.createElement('img');
-        image.src = product.imageUrl || 'images/placeholders/default.svg'; // Fallback image
+        image.src = product.imageUrl || 'images/placeholders/default.svg';
         image.alt = product.name;
-        // No specific class needed for img if deal-card-image-container styles cover it in style.css
-        // image.classList.add('product-image');
+        image.loading = 'lazy'; // Added loading lazy
+        image.onerror = function() { this.onerror=null; this.src='images/placeholders/default.svg'; this.alt='Placeholder image'; }; // Added onerror
         imageContainer.appendChild(image);
 
         // Content container
@@ -251,38 +251,47 @@ function renderProducts(productsToRender, containerElement) {
         contentContainer.classList.add('deal-card-content');
 
         const nameHeading = document.createElement('h3');
-        // No specific class needed if deal-card h3 style is sufficient
-        // nameHeading.classList.add('product-name');
         nameHeading.textContent = product.name;
 
         // Price container and price (mimicking deal card structure)
         const priceContainer = document.createElement('div');
         priceContainer.classList.add('price-container');
         const priceSpan = document.createElement('span');
-        priceSpan.classList.add('price'); // Use 'price' class like in deal-card
-        priceSpan.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+        priceSpan.classList.add('price');
+        priceSpan.textContent = `R${parseFloat(product.price).toFixed(2)}`; // Changed $ to R
         priceContainer.appendChild(priceSpan);
         // Products don't have originalPrice in the provided data structure, so we omit it
 
-        const categoryPara = document.createElement('p');
-        categoryPara.classList.add('product-meta-info'); // A generic class for meta items
-        categoryPara.innerHTML = `Category: <span>${product.category}</span>`;
-
+        // Farmer (displayed like business-name)
         const farmerPara = document.createElement('p');
-        farmerPara.classList.add('product-meta-info'); // A generic class for meta items
-        farmerPara.innerHTML = `Sold by: <span>${product.farmer}</span>`;
+        farmerPara.classList.add('business-name'); // Use 'business-name' class for similar styling
+        farmerPara.title = product.farmer; // Tooltip for full name if needed
+        farmerPara.innerHTML = `<i class="fas fa-store-alt" aria-hidden="true"></i> ${product.farmer}`;
+
+        // Category (displayed with an icon, using a new class for styling)
+        const categoryPara = document.createElement('p');
+        categoryPara.classList.add('product-category-display'); // New class for specific styling
+        categoryPara.innerHTML = `<i class="fas fa-tag" aria-hidden="true"></i> Category: ${product.category}`;
 
         const descriptionPara = document.createElement('p');
-        descriptionPara.classList.add('description'); // Use 'description' class like in deal-card
+        descriptionPara.classList.add('description');
         descriptionPara.textContent = product.description;
+
+        // View Product Button (mimicking view-deal-btn)
+        const viewProductBtn = document.createElement('button');
+        viewProductBtn.classList.add('view-deal-btn'); // Use same class for styling
+        viewProductBtn.textContent = 'View Product';
+        // Optional: Add dataset for product ID and aria-label if it were functional
+        // viewProductBtn.dataset.productId = product.id;
+        // viewProductBtn.setAttribute('aria-label', `View details for ${product.name}`);
 
         // Assemble content
         contentContainer.appendChild(nameHeading);
-        contentContainer.appendChild(priceContainer); // Add price container
-        contentContainer.appendChild(categoryPara);
-        contentContainer.appendChild(farmerPara);
+        contentContainer.appendChild(priceContainer);
+        contentContainer.appendChild(farmerPara); // Changed from generic p to styled farmerPara
+        contentContainer.appendChild(categoryPara); // Changed from generic p to styled categoryPara
         contentContainer.appendChild(descriptionPara);
-        // No "View Deal" button for products as per original structure
+        contentContainer.appendChild(viewProductBtn); // Added button
 
         // Assemble card
         card.appendChild(imageContainer);

@@ -56,27 +56,34 @@
 /* Product Listing specific to products.html */
 #product-listing {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid, kept from original product styles */
-    gap: 20px; /* Kept from original product styles, var(--space-lg) from style.css is 22px, this is 20px */
-    margin-top: 20px; /* Add some space above the product listing */
+    /* Aligned with #deals-container from style.css */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: var(--space-lg); /* Assuming --space-lg is globally available from style.css */
+    margin-top: 20px; /* Add some space above the product listing, can be var(--space-lg) too if desired */
 }
 
-/* Styles for product-specific meta information if needed,
-   assuming .deal-card from style.css handles the main card layout.
-   These styles target the <p class="product-meta-info"> elements. */
-.deal-card .product-meta-info { /* Targetting the new class within a .deal-card */
-    font-size: 0.9em; /* From original .product-category, .product-farmer */
-    color: #555; /* From original .product-category, .product-farmer */
-    margin-bottom: 8px; /* Adjusted slightly from 5px for better spacing if needed */
+/* Styling for the new .product-category-display class */
+/* Aiming for consistency with .business-name or .best-before from style.css */
+.deal-card .product-category-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm, 8px); /* Use CSS variable from style.css, fallback to 8px */
+    font-size: 0.85em; /* Consistent with .business-name */
+    color: var(--neutral-medium, #566573); /* Consistent with .business-name, fallback color */
+    margin-bottom: var(--space-sm, 8px); /* Consistent with .business-name */
 }
 
-.deal-card .product-meta-info span { /* Targetting spans within the new class */
-    font-weight: normal; /* From original .product-category span, .product-farmer span */
-    color: #333; /* From original .product-category span, .product-farmer span */
-    /* Consider adding a class to the span if more specific styling is needed, e.g. <span class="meta-value"> */
+.deal-card .product-category-display i.fa-tag { /* Style for the icon specifically */
+    color: var(--primary-green, #27AE60); /* Use a theme color, fallback */
+    font-size: 1em; /* Adjust icon size if needed relative to text */
 }
+
 
 /*
+   The .product-meta-info rules have been REMOVED as this class is no longer used.
+   Farmer info now uses .business-name (styled globally in style.css).
+   Category info uses .product-category-display (styled above).
+
    The following styles from the old .product-card structure are now REMOVED,
    as .deal-card and its sub-element styles from style.css should cover them:
    - .product-card (background, border, padding, shadow, etc.)

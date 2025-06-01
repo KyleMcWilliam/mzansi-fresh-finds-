@@ -10,12 +10,17 @@ import {
     setCurrentListings // Helper to reset state for tests
 } from '../js/business-portal.js';
 
-let testDOM;
+let testDOMContainer; // Renamed to avoid confusion with individual test DOMs
 
-function setupPortalDOM() {
-    testDOM = document.createElement('div');
-    testDOM.id = 'test-dom-container';
-    document.body.appendChild(testDOM);
+// --- Dashboard Page DOM Setup ---
+function setupDashboardDOM() {
+    // Simulate being on the business-dashboard.html page
+    // For the isPage() utility, we can set body.id or ensure a key element exists
+    document.body.id = 'business-dashboard-page-test'; // For isPage utility if it checks body.id
+
+    testDOMContainer = document.createElement('div');
+    testDOMContainer.id = 'test-dashboard-dom';
+    document.body.appendChild(testDOMContainer);
 
     const listingsContainerHTML = `<div id="business-listings-container"></div>`;
     const noListingsMessageHTML = `<p id="no-listings-message" style="display: none;"></p>`;
@@ -27,67 +32,98 @@ function setupPortalDOM() {
                 <button class="modal-close" data-close-modal>&times;</button>
                 <h2 id="listingModalTitle">Add/Edit Listing</h2>
                 <form id="listingForm">
-                    <div class="form-group">
-                        <label for="itemName">Item Name:</label>
-                        <input type="text" id="itemName" name="itemName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemDescription">Description:</label>
-                        <textarea id="itemDescription" name="itemDescription" rows="3" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemCategory">Category:</label>
-                        <select id="itemCategory" name="itemCategory" required>
-                            <option value="" disabled selected>Select a category...</option>
-                            <option value="bakery">Bakery</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemPrice">Original Price (R):</label>
-                        <input type="number" id="itemPrice" name="itemPrice" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemDiscountedPrice">Discounted Price (R):</label>
-                        <input type="number" id="itemDiscountedPrice" name="itemDiscountedPrice" step="0.01" min="0">
-                    </div>
-                     <div class="form-group">
-                        <label for="itemQuantity">Quantity:</label>
-                        <input type="text" id="itemQuantity" name="itemQuantity" placeholder="e.g., 10 units, 5 kg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemExpiryDate">Expiry Date:</label>
-                        <input type="date" id="itemExpiryDate" name="itemExpiryDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemPickupLocation">Pickup Location:</label>
-                        <input type="text" id="itemPickupLocation" name="itemPickupLocation" placeholder="e.g., Your Business Address" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="button-style" id="saveListingBtn">Save Listing</button>
-                        <button type="button" class="button-style button-cancel" data-close-modal>Cancel</button>
-                    </div>
+                    <div class="form-group"><label for="itemName">Item Name:</label><input type="text" id="itemName" name="itemName" required></div>
+                    <div class="form-group"><label for="itemDescription">Description:</label><textarea id="itemDescription" name="itemDescription" rows="3" required></textarea></div>
+                    <div class="form-group"><label for="itemCategory">Category:</label><select id="itemCategory" name="itemCategory" required><option value="" disabled selected>Select a category...</option><option value="bakery">Bakery</option></select></div>
+                    <div class="form-group"><label for="itemPrice">Original Price (R):</label><input type="number" id="itemPrice" name="itemPrice" step="0.01" min="0" required></div>
+                    <div class="form-group"><label for="itemDiscountedPrice">Discounted Price (R):</label><input type="number" id="itemDiscountedPrice" name="itemDiscountedPrice" step="0.01" min="0"></div>
+                    <div class="form-group"><label for="itemQuantity">Quantity:</label><input type="text" id="itemQuantity" name="itemQuantity" required></div>
+                    <div class="form-group"><label for="itemExpiryDate">Expiry Date:</label><input type="date" id="itemExpiryDate" name="itemExpiryDate" required></div>
+                    <div class="form-group"><label for="itemPickupLocation">Pickup Location:</label><input type="text" id="itemPickupLocation" name="itemPickupLocation" required></div>
+                    <div class="form-actions"><button type="submit" class="button-style" id="saveListingBtn">Save Listing</button><button type="button" class="button-style button-cancel" data-close-modal>Cancel</button></div>
                 </form>
             </div>
         </div>`;
 
-    testDOM.innerHTML = listingsContainerHTML + noListingsMessageHTML + addNewListingBtnHTML + modalHTML;
+    testDOMContainer.innerHTML = listingsContainerHTML + noListingsMessageHTML + addNewListingBtnHTML + modalHTML;
+    // Add a way for isPage to identify this as the dashboard
+    const dashboardIdentifier = document.createElement('div');
+    dashboardIdentifier.id = 'business-listings-container'; // isPage checks for this element
+    if (!testDOMContainer.querySelector('#business-listings-container')) { // ensure it's not duplicated
+        testDOMContainer.appendChild(dashboardIdentifier);
+    }
 }
 
-function teardownPortalDOM() {
-    if (testDOM) {
-        testDOM.remove();
-        testDOM = null;
+function teardownDashboardDOM() {
+    if (testDOMContainer) {
+        testDOMContainer.remove();
+        testDOMContainer = null;
     }
     setCurrentListings([]); // Reset the shared state
+    document.body.id = ''; // Clear body id
+}
+
+// --- Login Page DOM Setup ---
+function setupLoginDOM() {
+    // Simulate being on the business-login.html page
+    document.body.id = 'business-login-page-test'; // For isPage utility
+
+    testDOMContainer = document.createElement('div');
+    testDOMContainer.id = 'test-login-dom';
+    document.body.appendChild(testDOMContainer);
+
+    const loginFormHTML = `
+        <form id="login-form">
+            <input type="email" id="login-email" name="login-email" required>
+            <input type="password" id="login-password" name="login-password" required>
+            <button type="submit">Login</button>
+        </form>`;
+    const signupFormHTML = `
+        <form id="signup-form">
+            <input type="text" id="signup-business-name" name="signup-business-name" required>
+            <input type="email" id="signup-email" name="signup-email" required>
+            <input type="password" id="signup-password" name="signup-password" required minlength="8">
+            <input type="password" id="signup-confirm-password" name="signup-confirm-password" required minlength="8">
+            <button type="submit">Sign Up</button>
+        </form>`;
+
+    testDOMContainer.innerHTML = loginFormHTML + signupFormHTML;
+}
+
+function teardownLoginDOM() {
+    if (testDOMContainer) {
+        testDOMContainer.remove();
+        testDOMContainer = null;
+    }
+    document.body.id = ''; // Clear body id
+    // Reset any relevant state if needed, though login/signup handlers don't modify currentListings
 }
 
 
 // --- Test Cases ---
 
+// Simple assertion helper
+function assertEquals(actual, expected, message) {
+    if (actual !== expected) {
+        console.error(`Assertion Failed: ${message}. Expected "${expected}", but got "${actual}".`);
+    } else {
+        console.log(`Assertion Passed: ${message}.`);
+    }
+}
+
+function assert(condition, message) {
+    if (!condition) {
+        console.error(`Assertion Failed: ${message}.`);
+    } else {
+        console.log(`Assertion Passed: ${message}.`);
+    }
+}
+
+
 function testRenderListings() {
     console.log("\n--- Testing renderListings ---");
-    setupPortalDOM();
-    initBusinessPortal(); // Initialize to get DOM elements and attach basic listeners
+    setupDashboardDOM(); // Use dashboard specific DOM
+    initBusinessPortal();
 
     const listingsContainer = document.getElementById('business-listings-container');
     const noListingsMsg = document.getElementById('no-listings-message');
@@ -105,7 +141,7 @@ function testRenderListings() {
 
     // Test 2: Rendering an empty list
     setCurrentListings([]);
-    renderListings(currentListings);
+    renderListings(currentListings); // listings is now currentListings from the module
     assertEquals(listingsContainer.children.length, 0, "Should render 0 listing items for an empty array.");
     assertEquals(noListingsMsg.style.display, 'block', "No listings message should be visible for an empty array.");
 
@@ -114,7 +150,7 @@ function testRenderListings() {
       { id: '3', itemName: 'Cheese', price: 25.50, originalPrice: 30.00, quantity: '200g', expiryDate: '2023-12-31', description: 'Tasty cheese', category: 'Dairy', pickupLocation: 'Cool Place' }
     ];
     setCurrentListings(singleListing);
-    renderListings(currentListings);
+    renderListings(currentListings); // listings is now currentListings from the module
     assertEquals(listingsContainer.children.length, 1, "Should render 1 listing item for single item array.");
     const renderedItem = listingsContainer.children[0];
     assert(renderedItem.querySelector('.listing-item-name').textContent.includes('Cheese'), "Item name should be 'Cheese'.");
@@ -122,13 +158,13 @@ function testRenderListings() {
     assert(renderedItem.querySelector('.original-price-display').textContent.includes('R30.00'), "Original price should be correctly displayed.");
     assert(renderedItem.textContent.includes('Tasty cheese'), "Description should be rendered.");
 
-    teardownPortalDOM();
+    teardownDashboardDOM();
 }
 
 function testModalInteraction() {
     console.log("\n--- Testing Modal Interaction ---");
-    setupPortalDOM();
-    initBusinessPortal(); // Attaches event listeners
+    setupDashboardDOM(); // Use dashboard specific DOM
+    initBusinessPortal();
 
     const modal = document.getElementById('listingModal');
     const addBtn = document.getElementById('addNewListingBtn');
@@ -144,12 +180,12 @@ function testModalInteraction() {
     assertEquals(modal.classList.contains('is-open'), false, "Modal should not have 'is-open' class after clicking close button.");
     assertEquals(modal.getAttribute('aria-hidden'), 'true', "Modal aria-hidden should be 'true' when closed.");
 
-    teardownPortalDOM();
+    teardownDashboardDOM();
 }
 
 function testAddNewListingViaForm() {
     console.log("\n--- Testing Add New Listing via Form ---");
-    setupPortalDOM();
+    setupDashboardDOM(); // Use dashboard specific DOM
     initBusinessPortal();
     setCurrentListings([]); // Start with no listings
 
@@ -183,7 +219,99 @@ function testAddNewListingViaForm() {
 
     assertEquals(modal.classList.contains('is-open'), false, "Modal should be closed after form submission.");
 
-    teardownPortalDOM();
+    teardownDashboardDOM();
+}
+
+function testLoginSignupForms() {
+    console.log("\n--- Testing Login/Signup Form Event Listener Attachment ---");
+    setupLoginDOM(); // Use login page specific DOM
+
+    // Mock alert and window.location.href to prevent actual navigation/alerts during tests
+    const originalAlert = window.alert;
+    const originalLocation = window.location;
+    let alertCalledWith = '';
+    let locationChangedTo = '';
+
+    window.alert = (message) => {
+        console.log(`Mock alert: ${message}`);
+        alertCalledWith = message;
+    };
+
+    // Mock window.location.href - this is a common way but might not work for all JS environments/test runners.
+    // JSDOM usually allows this.
+    delete window.location;
+    window.location = { href: '' }; // Simple mock
+    Object.defineProperty(window.location, 'href', {
+        set: (url) => {
+            console.log(`Mock navigation to: ${url}`);
+            locationChangedTo = url;
+        },
+        get: () => locationChangedTo // Return the last set URL
+    });
+
+
+    initBusinessPortal(); // This should attach listeners
+
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+
+    assert(loginForm !== null, "Login form should exist in Login DOM.");
+    assert(signupForm !== null, "Signup form should exist in Login DOM.");
+
+    // Test 1: Login form submission (basic check, not deep into handler logic)
+    console.log("Simulating login form submission (empty fields)...");
+    alertCalledWith = ''; // Reset mock state
+    locationChangedTo = ''; // Reset mock state
+    loginForm.querySelector('#login-email').value = '';
+    loginForm.querySelector('#login-password').value = '';
+    loginForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    // Depending on the mocked alert, check if it was called.
+    // For now, we're primarily testing that initBusinessPortal ran without error and forms are present.
+    // A more robust test would involve spying on addEventListener or the handlers.
+    assert(alertCalledWith.includes("Please enter email and password"), "Alert for empty login form expected.");
+
+    console.log("Simulating login form submission (filled fields)...");
+    alertCalledWith = '';
+    locationChangedTo = '';
+    loginForm.querySelector('#login-email').value = 'test@example.com';
+    loginForm.querySelector('#login-password').value = 'password123';
+    loginForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    assert(locationChangedTo.includes('business-dashboard.html'), "Should attempt to redirect to dashboard on successful login.");
+
+
+    // Test 2: Signup form submission (basic check)
+    console.log("Simulating signup form submission (empty fields)...");
+    alertCalledWith = '';
+    locationChangedTo = '';
+    signupForm.querySelector('#signup-business-name').value = ''; // Empty one field
+    signupForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    assert(alertCalledWith.includes("Please fill all fields"), "Alert for empty signup form expected.");
+
+    console.log("Simulating signup form submission (passwords mismatch)...");
+    alertCalledWith = '';
+    locationChangedTo = '';
+    signupForm.querySelector('#signup-business-name').value = 'Test Biz';
+    signupForm.querySelector('#signup-email').value = 'biz@example.com';
+    signupForm.querySelector('#signup-password').value = 'password123';
+    signupForm.querySelector('#signup-confirm-password').value = 'password321';
+    signupForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    assert(alertCalledWith.includes("Passwords do not match"), "Alert for mismatching passwords expected.");
+
+    console.log("Simulating signup form submission (successful)...");
+    alertCalledWith = '';
+    locationChangedTo = '';
+    signupForm.querySelector('#signup-business-name').value = 'Test Biz';
+    signupForm.querySelector('#signup-email').value = 'biz@example.com';
+    signupForm.querySelector('#signup-password').value = 'password123';
+    signupForm.querySelector('#signup-confirm-password').value = 'password123';
+    signupForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    assert(locationChangedTo.includes('business-dashboard.html'), "Should attempt to redirect to dashboard on successful signup.");
+
+    // Restore original alert and location
+    window.alert = originalAlert;
+    window.location = originalLocation;
+
+    teardownLoginDOM();
 }
 
 
@@ -194,6 +322,7 @@ console.log("Starting Business Portal Tests Execution...");
 testRenderListings();
 testModalInteraction();
 testAddNewListingViaForm();
+testLoginSignupForms(); // Add the new test suite
 
 // summarizeTests() is called by test-runner.html after all test modules load.
 console.log("Business Portal Tests Definitions Executed.");

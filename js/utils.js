@@ -17,15 +17,14 @@ export function formatDate(dateString) {
 }
 
 export function getPlaceholderImage(category) {
-    // const basePath = 'images/'; // Removed basePath
-    const imageSize = '300x200'; // Define a common size for placeholders
+    const basePath = 'images/placeholders/';
     switch (category?.toLowerCase()) {
-        case 'bakery': return `https://via.placeholder.com/${imageSize}.png?text=Bakery`;
-        case 'fruitveg': return `https://via.placeholder.com/${imageSize}.png?text=Fruit%26Veg`;
-        case 'dairy': return `https://via.placeholder.com/${imageSize}.png?text=Dairy`;
-        case 'meat': return `https://via.placeholder.com/${imageSize}.png?text=Meat`;
-        case 'prepared': return `https://via.placeholder.com/${imageSize}.png?text=Prepared`;
-        case 'pantry': return `https://via.placeholder.com/${imageSize}.png?text=Pantry`;
-        default: return `https://via.placeholder.com/${imageSize}.png?text=Food+Deal`; // Default placeholder
+        case 'bakery': return `${basePath}bakery.svg`;
+        case 'fruitveg': return `${basePath}fruitveg.svg`;
+        case 'dairy': return `${basePath}dairy.svg`;
+        case 'meat': return `${basePath}meat.svg`;
+        case 'prepared': return `${basePath}prepared.svg`;
+        case 'pantry': return `${basePath}pantry.svg`;
+        default: return `${basePath}default.svg`;
     }
 }

@@ -747,3 +747,60 @@ a:focus-visible {
     .modal-details h3 { font-size: 1.3em; }
     .modal-price { font-size: 1.6em; }
 }
+
+/* --- Ending Soon Indicator --- */
+.deal-card-image-container {
+    position: relative; /* Ensure this for absolute positioning of children */
+}
+
+.ending-soon-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--accent-orange);
+    color: var(--white-text-for-dark-bg); /* Ensure good contrast */
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75em; /* Slightly smaller */
+    font-weight: 700; /* Bold */
+    z-index: 1; /* Above the image */
+    letter-spacing: 0.3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* --- Generic Button Style for Static Pages --- */
+.button-style {
+    display: inline-block; /* Good for <a> and <button> */
+    background: var(--primary-green);
+    color: var(--primary-green-accessible-text);
+    border: 1px solid var(--primary-green); /* Add border for definition */
+    padding: var(--space-md) var(--space-lg); /* Slightly larger padding for page buttons */
+    text-align: center;
+    text-decoration: none; /* Remove underline for <a> tags */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 1em; /* Standard font size */
+    font-weight: 600; /* Slightly less bold than card button */
+    font-family: var(--font-primary);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-medium), color var(--transition-medium), border-color var(--transition-medium), transform var(--transition-fast), box-shadow var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.button-style:hover,
+.button-style:focus,
+.button-style:focus-visible {
+    background-color: var(--primary-green-dark);
+    border-color: var(--primary-green-dark);
+    color: var(--primary-green-accessible-text);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none; /* Ensure no underline on hover/focus for <a> */
+    outline: none; /* Custom focus handled by box-shadow or could add outline if needed */
+}
+
+.button-style:active {
+    transform: translateY(0px);
+    box-shadow: var(--shadow-inset);
+}

@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'mzansi-fresh-finds-v5'; // Version remains from previous step
+const CACHE_NAME = 'mzansi-fresh-finds-v6';
 const urlsToCache = [
     '/', 
     '/index.html',
@@ -22,22 +22,20 @@ const urlsToCache = [
     '/about.html',
     '/contact.html',
     '/business-signup.html',
-    '/privacy.html'
+    '/privacy.html',
+    '/images/placeholders/bakery.svg',
+    '/images/placeholders/fruitveg.svg',
+    '/images/placeholders/dairy.svg',
+    '/images/placeholders/meat.svg',
+    '/images/placeholders/prepared.svg',
+    '/images/placeholders/pantry.svg',
+    '/images/placeholders/default.svg',
 
-    // Placeholder images removed from cache list
-    // '/images/placeholder-food.png',
-    // '/images/placeholder-bakery.png',
-    // '/images/placeholder-fruitveg.png',
-    // '/images/placeholder-dairy.png',
-    // '/images/placeholder-meat.png',
-    // '/images/placeholder-prepared.png',
-    // '/images/placeholder-pantry.png',
+    // PWA Icons
+    '/images/icons/icon-192x192.png',
+    '/images/icons/icon-512x512.png'
 
-    // PWA icons removed from cache list
-    // '/images/icons/icon-192x192.png',
-    // '/images/icons/icon-512x512.png'
-
-    // Add any other core static assets like fonts IF self-hosted
+    // Commented out fonts as they are not self-hosted
     // '/fonts/poppins-v15-latin-regular.woff2', 
 ];
 

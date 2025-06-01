@@ -76,6 +76,8 @@ export function renderDeals(dealsToRender, currentSearchTerm, currentSelectedCat
         return;
     }
 
+    const ENDING_SOON_THRESHOLD_DAYS = 2; // Expires within next 2 days (today or tomorrow)
+
     dealsToRender.forEach((deal, index) => {
         const dealCard = document.createElement('div');
         dealCard.classList.add('deal-card');
@@ -83,12 +85,37 @@ export function renderDeals(dealsToRender, currentSearchTerm, currentSelectedCat
 
         const imageUrl = deal.imageUrl || getPlaceholderImage(deal.category);
         const imageAlt = deal.itemName || 'Deal product image';
-        // Use a more robust placeholder for onerror
         const placeholderOnError = getPlaceholderImage(null);
         const imageErrorScript = `this.onerror=null; this.src='${placeholderOnError}'; this.alt='Placeholder image';`;
 
+        let endingSoonIndicatorHTML = '';
+        if (deal.bestBefore) {
+            try {
+                // Ensure date is parsed as local by adding time component if not present
+                const bestBeforeDate = new Date(deal.bestBefore.includes('T') ? deal.bestBefore : deal.bestBefore + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set to midnight for fair comparison
+
+                const timeDiff = bestBeforeDate.getTime() - today.getTime();
+                const daysDifference = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                if (daysDifference >= 0 && daysDifference < ENDING_SOON_THRESHOLD_DAYS) {
+                    let expiryMessage = 'Expires Soon!';
+                    if (daysDifference === 0) {
+                        expiryMessage = 'Expires Today!';
+                    } else if (daysDifference === 1) {
+                        expiryMessage = 'Expires Tomorrow!';
+                    }
+                    endingSoonIndicatorHTML = `<span class="ending-soon-indicator">${expiryMessage}</span>`;
+                }
+            } catch (e) {
+                console.warn('Error parsing bestBefore date for deal:', deal.id, deal.bestBefore, e);
+            }
+        }
+
         dealCard.innerHTML = `
             <div class="deal-card-image-container">
+                ${endingSoonIndicatorHTML}
                 <img src="${imageUrl}" alt="${imageAlt}" loading="lazy" onerror="${imageErrorScript}">
             </div>
             <div class="deal-card-content">

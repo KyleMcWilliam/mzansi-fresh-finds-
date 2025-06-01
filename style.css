@@ -460,6 +460,128 @@ a:focus-visible {
 }
 
 /* ==========================================================================
+   Smaller Mobile Devices (e.g., iPhone SE, Galaxy Fold portrait)
+   ========================================================================== */
+@media (max-width: 480px) {
+    body {
+        /* Example: Slightly reduce base font if needed, though 15px at 768px might be okay */
+        /* font-size: 14px; */
+    }
+
+    .site-header {
+        padding: var(--space-md) 0; /* Further reduce padding */
+    }
+    .site-header h1 {
+        font-size: clamp(1.5em, 5.5vw, 2em); /* Adjust clamp for smaller header */
+    }
+    .site-header p {
+        font-size: clamp(0.85em, 2.3vw, 0.95em);
+    }
+
+    .filters {
+        padding: var(--space-md); /* Reduce padding in filters */
+    }
+    .filters input[type="text"], .filters select, .filters .clear-filters-btn {
+        font-size: 0.9em; /* Slightly smaller font in filter controls */
+        height: 42px; /* Adjust height if needed */
+    }
+
+    #deals-container {
+        gap: var(--space-md); /* Reduce gap between cards if very cramped */
+    }
+    .deal-card-content {
+        padding: var(--space-md); /* Reduce padding in cards */
+    }
+    .deal-card h3 {
+        font-size: 1.1em; /* Adjust card title */
+    }
+    .deal-card .price {
+        font-size: 1.4em; /* Adjust price font size */
+    }
+    .deal-card .view-deal-btn {
+        padding: calc(0.8 * var(--space-sm)) calc(1.2 * var(--space-lg)); /* Adjust button padding */
+        font-size: 0.85em;
+        width: 100%; /* Make button full width */
+    }
+
+    .modal-content {
+        padding: var(--space-md);
+        margin: var(--space-sm); /* Ensure it doesn't touch screen edges */
+    }
+    .modal-details h3 {
+        font-size: 1.2em;
+    }
+    .modal-price {
+        font-size: 1.5em;
+    }
+    .modal-image-container {
+        max-height: 150px; /* Smaller modal image */
+    }
+
+    .site-footer {
+        padding: var(--space-md);
+        margin-top: var(--space-md);
+    }
+    .site-footer p, .site-footer .footer-links a {
+        font-size: 0.85em; /* Smaller footer text */
+    }
+    .site-footer .footer-links {
+        display: flex;
+        flex-direction: column; /* Stack footer links */
+        gap: var(--space-xs);
+    }
+    .site-footer .footer-links a {
+        margin: 0; /* Reset horizontal margins */
+        padding: var(--space-xs) 0; /* Add some vertical padding for easier tapping */
+    }
+
+    /* Example for a generic button touch target increase, if not covered by specific ones */
+    .button-style, .clear-filters-btn, .modal-close { /* Added .modal-close here */
+        min-height: 40px; /* Ensure minimum touch height */
+        padding-top: var(--space-sm);
+        padding-bottom: var(--space-sm);
+    }
+    #scrollToTopBtn {
+        width: 42px;
+        height: 42px;
+        font-size: 1em;
+        bottom: var(--space-md);
+        right: var(--space-md);
+    }
+
+    /* Business Portal Listing Adjustments */
+    .listing-item {
+        padding: var(--space-md);
+    }
+    .listing-item-name {
+        font-size: 1.15em;
+    }
+    .listing-item-actions {
+        flex-direction: column; /* Stack action buttons */
+        align-items: stretch; /* Make buttons full width */
+        width: 100%;
+    }
+    .listing-item-actions .button-style {
+        width: 100%;
+        margin-bottom: var(--space-xs); /* Add some space between stacked buttons */
+    }
+    .listing-item-actions .button-style:last-child {
+        margin-bottom: 0;
+    }
+
+
+    /* Auth Forms Adjustments */
+    .auth-forms-wrapper > .form-container {
+        padding: var(--space-md);
+    }
+
+    /* Contact Form Adjustments */
+    .contact-form-wrapper {
+        padding: var(--space-md);
+    }
+}
+
+/* ==========================================================================
    Business Portal Listings
    ========================================================================== */
 #business-listings-container {
@@ -1238,6 +1360,17 @@ a:focus-visible {
     }
     .contact-form-wrapper {
         padding: var(--space-lg); /* Reduce padding on very small screens */
+    }
+
+    /* Refinements for 576px from subtask */
+    .deal-card .view-deal-btn {
+        width: 100%; /* Make button full width */
+        padding: var(--space-sm) var(--space-lg); /* Ensure sufficient padding */
+    }
+    .site-footer .footer-links a {
+        padding: var(--space-xs); /* Add some padding around links for better touchability */
+        display: inline-block; /* Ensure padding is applied correctly */
+        margin-bottom: var(--space-xs); /* Add some spacing if they wrap */
     }
 }
 

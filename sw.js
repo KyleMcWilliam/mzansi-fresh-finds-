@@ -1,31 +1,47 @@
 // sw.js
 
-const CACHE_NAME = 'mzansi-fresh-finds-v4'; // << INCREMENTED VERSION AGAIN
+const CACHE_NAME = 'mzansi-fresh-finds-v7';
 const urlsToCache = [
     '/', 
     '/index.html',
     '/style.css',
-    '/script.js',
     '/manifest.json',
-    // Placeholder images
-    '/images/placeholder-food.png',    
-    '/images/placeholder-bakery.png',
-    '/images/placeholder-fruitveg.png',
-    '/images/placeholder-dairy.png',
-    '/images/placeholder-meat.png',
-    '/images/placeholder-prepared.png',
-    '/images/placeholder-pantry.png',
-    // PWA icons
+
+    // New data file
+    '/data/deals.json',
+
+    // New JS Modules
+    '/js/app.js',
+    '/js/config.js',
+    '/js/deals.js',
+    '/js/modal.js',
+    '/js/ui.js',
+    '/js/utils.js',
+
+    // Other HTML pages for better offline experience
+    '/about.html',
+    '/contact.html',
+    '/business-signup.html',
+    '/privacy.html',
+    '/images/placeholders/bakery.svg',
+    '/images/placeholders/fruitveg.svg',
+    '/images/placeholders/dairy.svg',
+    '/images/placeholders/meat.svg',
+    '/images/placeholders/prepared.svg',
+    '/images/placeholders/pantry.svg',
+    '/images/placeholders/default.svg',
+
+    // PWA Icons
     '/images/icons/icon-192x192.png',
     '/images/icons/icon-512x512.png'
-    // Add any other core static assets like fonts IF self-hosted, or logo
+
+    // Commented out fonts as they are not self-hosted
     // '/fonts/poppins-v15-latin-regular.woff2', 
-    // '/images/logo.png' 
 ];
 
 // Install event: Cache core assets
 self.addEventListener('install', event => {
-    console.log('[SW] Install event');
+    console.log('[SW] Install event for cache:', CACHE_NAME);
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
@@ -38,14 +54,14 @@ self.addEventListener('install', event => {
                 return self.skipWaiting(); // Force activation
             })
             .catch(error => {
-                console.error('[SW] Caching failed during install for:', urlsToCache, error);
+                console.error('[SW] Caching failed during install for version:', CACHE_NAME, error);
             })
     );
 });
 
 // Activate event: Clean up old caches and claim clients
 self.addEventListener('activate', event => {
-    console.log('[SW] Activate event');
+    console.log('[SW] Activate event for cache:', CACHE_NAME);
     const cacheWhitelist = [CACHE_NAME]; 
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -59,11 +75,11 @@ self.addEventListener('activate', event => {
             );
         })
         .then(() => {
-            console.log('[SW] Claiming clients.');
+            console.log('[SW] Claiming clients for cache:', CACHE_NAME);
             return self.clients.claim(); // Take control immediately
         })
         .catch(error => {
-             console.error('[SW] Activation failed:', error);
+             console.error('[SW] Activation failed for cache:', CACHE_NAME, error);
         })
     );
 });
@@ -72,57 +88,49 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     // Only handle GET requests
     if (event.request.method !== 'GET') {
-        // console.log('[SW] Ignoring non-GET request:', event.request.method, event.request.url);
         return;
     }
 
-    // Example: Skip caching for API calls if they exist (adjust URL pattern)
-    // if (event.request.url.includes('/api/')) {
-    //    console.log('[SW] Skipping cache for API request:', event.request.url);
-    //    return fetch(event.request); 
-    // }
+    // For external placeholder images, try network first, then nothing (no offline for these)
+    if (event.request.url.startsWith('https://via.placeholder.com/')) {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                // Optionally return a generic fallback or just let it fail
+                return new Response('Placeholder image could not be loaded.', {
+                    status: 404,
+                    headers: { 'Content-Type': 'text/plain' }
+                });
+            })
+        );
+        return;
+    }
 
     event.respondWith(
         caches.match(event.request)
             .then(cachedResponse => {
-                // Return cached response if found
                 if (cachedResponse) {
-                    // console.log('[SW] Serving from cache:', event.request.url);
                     return cachedResponse;
                 }
 
-                // Not in cache, fetch from network
                 return fetch(event.request).then(
                     networkResponse => {
-                        // Check for valid response
                         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                            // console.log('[SW] Invalid network response, not caching:', event.request.url, networkResponse.status);
                             return networkResponse; 
                         }
-
-                        // Clone response for caching
                         const responseToCache = networkResponse.clone();
-
                         caches.open(CACHE_NAME)
                             .then(cache => {
-                                // console.log('[SW] Caching new resource:', event.request.url);
                                 cache.put(event.request, responseToCache);
                             })
                             .catch(error => {
                                 console.error('[SW] Failed to cache resource:', event.request.url, error);
                             });
-
                         return networkResponse;
                     }
                 ).catch(error => {
                     console.error('[SW] Network fetch failed:', event.request.url, error);
-                    // Optional: Return an offline fallback page for navigation requests
-                    // if (event.request.mode === 'navigate') {
-                    //     return caches.match('/offline.html'); 
-                    // }
-                    // For other assets, just let the browser show its error
-                    return new Response("Network error occurred", {
-                        status: 408, // Request Timeout
+                    return new Response(`Network error occurred while fetching ${event.request.url}. Resource could not be loaded.`, {
+                        status: 408,
                         headers: { 'Content-Type': 'text/plain' }
                     });
                 });

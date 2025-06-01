@@ -1,206 +1,177 @@
-// Main application orchestrator
-import { FILTERS_STORAGE_KEY } from './config.js';
-import { isValidEmail, isNotEmpty, displayError, clearError, clearAllErrors } from './validation.js';
-import * as deals from './deals.js';
-import * as ui from './ui.js';
-import * as modal from './modal.js';
+// Global variables
+let allProducts = [];
 
-const DEALS_JSON_PATH = 'data/deals.json';
-
-// --- DOM Elements ---
-let currentYearSpan;
-let scrollToTopBtn;
-let dealsContainer; // For error messages during init
-
-// --- PWA Service Worker Registration ---
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(registration => {
-                console.log('[SW] Registered with scope:', registration.scope);
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    console.log('[SW] Update found. New worker installing.');
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            ui.showUpdateNotification();
-                        }
-                    });
-                });
-            })
-            .catch(error => console.error('[SW] Registration failed:', error));
-        navigator.serviceWorker.ready.then(reg => console.log('[SW] Ready'));
-    }
-}
-
-// --- Filter Persistence (LocalStorage) ---
-function saveFilterSettings() {
-    try {
-        const { searchTerm, category, sortBy } = ui.getFilterValues();
-        const filters = { searchTerm, category, sortBy };
-        localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
-    } catch (e) {
-        console.warn("Could not save filters to localStorage:", e);
-    }
-}
-
-function loadFilterSettings() {
-    try {
-        const savedFilters = localStorage.getItem(FILTERS_STORAGE_KEY);
-        if (savedFilters) {
-            const filters = JSON.parse(savedFilters);
-            ui.setFilterValues(filters);
-            ui.updateCategoryFilterVisuals(filters.category || 'all');
-        }
-    } catch (e) {
-        console.warn("Could not load filters from localStorage:", e);
-    }
-}
-
-// --- Core Application Logic ---
-function applyAndSaveFilters() {
-    ui.showSkeletonLoaders(); // Show skeletons before filtering and rendering
-    const { searchTerm, category, sortBy } = ui.getFilterValues();
-
-    // Using a small timeout to ensure skeleton loaders are visible before potential blocking operations
-    setTimeout(() => {
-        const filteredAndSortedDeals = deals.getFilteredAndSortedDeals(searchTerm, category, sortBy);
-        ui.renderDeals(filteredAndSortedDeals, searchTerm, category);
-        ui.updateCategoryFilterVisuals(category);
-        saveFilterSettings();
-    }, 50); // Adjust timeout as needed, or remove if not necessary
-}
-
-function clearAllFilters() {
-    ui.setFilterValues({ searchTerm: '', category: 'all', sortBy: 'default' });
-    applyAndSaveFilters();
-}
-
-function handleViewDeal(dealId) {
-    modal.populateModalWithDeal(dealId); // modal.js now fetches the deal by ID
-    modal.openModal();
-}
-
-// --- Scroll to Top Button Logic ---
-function initializeScrollToTop() {
-    scrollToTopBtn = document.getElementById('scrollToTopBtn');
-    if (scrollToTopBtn) {
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-            if (scrollTimeout) { clearTimeout(scrollTimeout); }
-            scrollTimeout = setTimeout(() => {
-                if (window.scrollY > 200) {
-                    scrollToTopBtn.classList.add('show');
-                } else {
-                    scrollToTopBtn.classList.remove('show');
-                }
-            }, 150);
-        }, { passive: true });
-
-        scrollToTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        console.log("Scroll-to-top initialized.");
-    } else {
-        console.warn("Scroll-to-top button #scrollToTopBtn not found.");
-    }
-}
-
-// --- Initial Setup ---
-async function initializeApp() {
-    dealsContainer = document.getElementById('deals-container'); // For error messages
-    currentYearSpan = document.getElementById('currentYear');
-
-    if (currentYearSpan) {
-        currentYearSpan.textContent = new Date().getFullYear();
-    }
-
-    registerServiceWorker();
-    ui.showSkeletonLoaders(); // Show skeleton loaders early
-
-    try {
-        await deals.fetchDeals(DEALS_JSON_PATH);
-    } catch (error) {
-        console.error("Failed to fetch initial deal data:", error);
-        if(dealsContainer) {
-            dealsContainer.innerHTML = `<p class="error-message">Could not load deals. Please check your connection and try again later.</p>`;
-        }
-        // App can continue with empty data, or you can stop initialization here
-        // For now, we let it continue so UI setup still happens.
-    }
-
-    // Initialize UI components and event listeners
-    // Callbacks are passed: 1. for applying filters, 2. for clearing filters, 3. for viewing a deal
-    ui.initUI(applyAndSaveFilters, clearAllFilters, handleViewDeal);
-
-    // Initialize modal system, passing the function to get a deal by its ID
-    modal.initModal(deals.getDealById);
-
-    loadFilterSettings(); // Load filters from localStorage and apply them to UI
-    applyAndSaveFilters(); // Perform initial filter and render
-
-    initializeScrollToTop(); // Setup scroll-to-top button functionality
-
-    // Contact Form Validation
-    const contactForm = document.getElementById('contactForm');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            clearAllErrors(contactForm); // Clear previous errors
-
-            let isValid = true;
-
-            // Validate Name
-            const nameInput = document.getElementById('contactName');
-            if (nameInput && !isNotEmpty(nameInput.value)) {
-                displayError(nameInput, 'Name is required.');
-                isValid = false;
-            }
-
-            // Validate Email
-            const emailInput = document.getElementById('contactEmail');
-            if (emailInput) {
-                if (!isNotEmpty(emailInput.value)) {
-                    displayError(emailInput, 'Email is required.');
-                    isValid = false;
-                } else if (!isValidEmail(emailInput.value)) {
-                    displayError(emailInput, 'Please enter a valid email address.');
-                    isValid = false;
-                }
-            }
-
-            // Validate Message
-            const messageInput = document.getElementById('contactMessage');
-            if (messageInput && !isNotEmpty(messageInput.value)) {
-                displayError(messageInput, 'Message is required.');
-                isValid = false;
-            }
-
-            if (isValid) {
-                // Display success message
-                const formWrapper = contactForm.closest('.contact-form-wrapper');
-                if (formWrapper) {
-                    formWrapper.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Message sent successfully! Your message has been received.</p>';
-                } else {
-                    // Fallback if structure is different
-                    contactForm.innerHTML = '<p class="success-message" style="color: green;">Message sent successfully!</p>';
-                }
-                // Optionally, reset the form if it wasn't replaced: contactForm.reset();
-            }
-        });
-    }
-
-    console.log("Mzansi Fresh Finds Initialized (Modular)!");
-}
-
-// --- Run Initialization ---
+// DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
-    initializeApp().catch(error => {
-        console.error("Critical error during app initialization:", error);
-        if (dealsContainer) {
-            dealsContainer.innerHTML = `<p class="error-message">Application failed to initialize due to a critical error. Please refresh the page or contact support.</p>`;
-        } else {
-            document.body.innerHTML = `<p class="error-message" style="text-align: center; padding: 20px;">Application failed to initialize. Please refresh the page.</p>`;
-        }
-    });
+    // Check if we are on the products page by looking for the product-listing element
+    if (document.getElementById('product-listing')) {
+        initProductsPage();
+    }
+    // Other page initializations can go here if needed in the future
+    // e.g., if (document.getElementById('home-specific-element')) initHomePage();
 });
+
+/**
+ * Initializes functionality specific to the products page.
+ */
+function initProductsPage() {
+    fetchProductsAndRender().then(() => { // Ensure products are loaded before setting up listeners
+        const categoryFilter = document.getElementById('category-filter');
+        const farmerFilter = document.getElementById('farmer-filter');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const sortDropdown = document.getElementById('sort-dropdown');
+
+        if (categoryFilter && farmerFilter && applyFiltersBtn && sortDropdown) {
+            applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
+            categoryFilter.addEventListener('change', applyFiltersAndSort);
+            farmerFilter.addEventListener('input', applyFiltersAndSort);
+            sortDropdown.addEventListener('change', applyFiltersAndSort);
+        } else {
+            console.error('Filter or sort elements not found on products.html');
+        }
+    }).catch(error => {
+        // If fetchProductsAndRender fails, log it, product interactions won't work.
+        console.error("Failed to initialize products page due to fetch error:", error);
+    });
+}
+
+/**
+ * Applies current filter and sort values to the product list and re-renders it.
+ */
+function applyFiltersAndSort() {
+    const categoryValue = document.getElementById('category-filter').value;
+    const farmerValue = document.getElementById('farmer-filter').value.trim().toLowerCase();
+    const productListingContainer = document.getElementById('product-listing');
+
+    if (!productListingContainer) {
+        console.error("Product listing container not found for filtering/sorting.");
+        return;
+    }
+
+    let filteredProducts = [...allProducts];
+
+    // Apply filters
+    if (categoryValue !== "all") {
+        filteredProducts = filteredProducts.filter(product => product.category === categoryValue);
+    }
+    if (farmerValue) {
+        filteredProducts = filteredProducts.filter(product =>
+            product.farmer.toLowerCase().includes(farmerValue)
+        );
+    }
+
+    // Apply sort
+    const sortedAndFilteredProducts = applySort(filteredProducts);
+
+    renderProducts(sortedAndFilteredProducts, productListingContainer);
+}
+
+/**
+ * Sorts an array of product objects based on the selected sort criteria.
+ * @param {Array<Object>} productsToSort - The array of products to sort.
+ * @returns {Array<Object>} A new array with the sorted products.
+ */
+function applySort(productsToSort) {
+    const sortValue = document.getElementById('sort-dropdown').value;
+    let sortedProducts = [...productsToSort]; // Work on a copy
+
+    switch (sortValue) {
+        case 'name-asc':
+            sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        case 'price-asc':
+            sortedProducts.sort((a, b) => a.price - b.price);
+            break;
+        case 'price-desc':
+            sortedProducts.sort((a, b) => b.price - a.price);
+            break;
+    }
+    return sortedProducts;
+}
+
+
+/**
+ * Fetches product data from JSON and renders them on the page.
+ * @returns {Promise} A promise that resolves when products are fetched and rendered, or rejects on error.
+ */
+async function fetchProductsAndRender() {
+    const productListingContainer = document.getElementById('product-listing');
+
+    if (!productListingContainer) {
+        console.error("Product listing container not found on this page.");
+        return Promise.reject("Product listing container not found");
+    }
+
+    try {
+        const response = await fetch('data/products.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const products = await response.json();
+        allProducts = products; // Store globally for filtering/sorting
+        // Initial render with default sort (order from JSON)
+        // Or, if a default sort is desired on load, call applyFiltersAndSort() here instead of just renderProducts
+        renderProducts(allProducts, productListingContainer);
+        return Promise.resolve(); // Resolve the promise upon success
+    } catch (error) {
+        console.error("Error fetching or parsing products:", error);
+        productListingContainer.innerHTML = '<p>Error loading products. Please try again later.</p>';
+        return Promise.reject(error); // Reject the promise on error
+    }
+}
+
+/**
+ * Renders an array of product objects into the given container element.
+ * @param {Array<Object>} productsToRender - The array of product objects to render.
+ * @param {HTMLElement} containerElement - The HTML element to render the products into.
+ */
+function renderProducts(productsToRender, containerElement) {
+    containerElement.innerHTML = ''; // Clear existing content
+
+    if (!productsToRender || productsToRender.length === 0) {
+        containerElement.innerHTML = '<p>No products found matching your criteria.</p>';
+        return;
+    }
+
+    productsToRender.forEach(product => {
+        const card = document.createElement('article');
+        card.classList.add('product-card');
+
+        const image = document.createElement('img');
+        image.src = product.imageUrl || 'images/placeholders/default.svg'; // Fallback image
+        image.alt = product.name;
+        image.classList.add('product-image');
+
+        const nameHeading = document.createElement('h3');
+        nameHeading.classList.add('product-name');
+        nameHeading.textContent = product.name;
+
+        const pricePara = document.createElement('p');
+        pricePara.classList.add('product-price');
+        pricePara.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+
+        const categoryPara = document.createElement('p');
+        categoryPara.classList.add('product-category');
+        categoryPara.innerHTML = `Category: <span>${product.category}</span>`;
+
+        const farmerPara = document.createElement('p');
+        farmerPara.classList.add('product-farmer');
+        farmerPara.innerHTML = `Sold by: <span>${product.farmer}</span>`;
+
+        const descriptionPara = document.createElement('p');
+        descriptionPara.classList.add('product-description');
+        descriptionPara.textContent = product.description;
+
+        card.appendChild(image);
+        card.appendChild(nameHeading);
+        card.appendChild(pricePara);
+        card.appendChild(categoryPara);
+        card.appendChild(farmerPara);
+        card.appendChild(descriptionPara);
+
+        containerElement.appendChild(card);
+    });
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "prod1",
+    "name": "Organic Apples",
+    "price": 3.99,
+    "imageUrl": "images/placeholders/fruitveg.svg",
+    "description": "Crisp and delicious organic apples, perfect for snacking or baking.",
+    "category": "Fruits",
+    "farmer": "Green Valley Orchards"
+  },
+  {
+    "id": "prod2",
+    "name": "Artisan Sourdough Bread",
+    "price": 5.50,
+    "imageUrl": "images/placeholders/bakery.svg",
+    "description": "Freshly baked artisan sourdough bread with a tangy flavor.",
+    "category": "Bakery",
+    "farmer": "The Local Loaf"
+  },
+  {
+    "id": "prod3",
+    "name": "Free-Range Eggs",
+    "price": 4.25,
+    "imageUrl": "images/placeholders/dairy.svg",
+    "description": "Farm-fresh free-range eggs from happy chickens.",
+    "category": "Dairy",
+    "farmer": "Happy Hen Farms"
+  },
+  {
+    "id": "prod4",
+    "name": "Heirloom Tomatoes",
+    "price": 2.99,
+    "imageUrl": "images/placeholders/fruitveg.svg",
+    "description": "Sweet and juicy heirloom tomatoes, bursting with flavor.",
+    "category": "Vegetables",
+    "farmer": "Sunset Acres"
+  },
+  {
+    "id": "prod5",
+    "name": "Raw Honey",
+    "price": 8.75,
+    "imageUrl": "images/placeholders/general.svg",
+    "description": "Pure and unprocessed raw honey, harvested locally.",
+    "category": "Pantry",
+    "farmer": "Beekeeper's Best"
+  }
+]

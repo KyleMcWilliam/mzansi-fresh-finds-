@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Products - FarmFresh Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <!-- Placeholder for navigation - will be addressed in a later step -->
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Our Products</h1>
+        <aside class="filters-sort-section">
+            <h2>Filters</h2>
+            <div>
+                <label for="category-filter">Filter by Category:</label>
+                <select id="category-filter" name="category">
+                    <option value="all">All</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Dairy">Dairy</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Meat">Meat</option>
+                    <option value="Pantry">Pantry</option>
+                    <option value="Prepared Foods">Prepared Foods</option>
+                </select>
+            </div>
+            <div>
+                <label for="farmer-filter">Filter by Farmer:</label>
+                <input type="text" id="farmer-filter" name="farmer">
+            </div>
+            <button id="apply-filters-btn">Apply Filters</button>
+
+            <h2>Sort</h2>
+            <div>
+                <label for="sort-dropdown">Sort by:</label>
+                <select id="sort-dropdown" name="sort">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                </select>
+            </div>
+        </aside>
+        <section id="product-listing" aria-live="polite">
+            <!-- Products will be loaded here by JavaScript -->
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 FarmFresh Marketplace</p>
+    </footer>
+    <script src="js/app.js"></script>
+</body>
+</html>

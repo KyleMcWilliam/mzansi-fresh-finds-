@@ -920,6 +920,94 @@ a:focus-visible {
 }
 
 /* ==========================================================================
+   Authentication Page Styles (business-login.html)
+   ========================================================================== */
+.auth-forms-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xl);
+    justify-content: center;
+    margin-top: var(--space-xl); /* Add some space above the forms wrapper */
+}
+
+/* Styling for form-container specifically within auth-forms-wrapper or on auth pages */
+.auth-forms-wrapper > .form-container {
+    flex: 1 1 400px; /* Grow and shrink, base width 400px */
+    background-color: var(--bg-card);
+    padding: var(--space-xl);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-lg); /* For spacing when stacked */
+}
+
+/* Ensure form groups within these containers have appropriate spacing */
+.auth-forms-wrapper > .form-container .form-group {
+    margin-bottom: var(--space-lg);
+}
+.auth-forms-wrapper > .form-container .form-group:last-of-type {
+    margin-bottom: var(--space-xl); /* More space before the button */
+}
+
+.auth-forms-wrapper > .form-container h3 {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    font-size: 1.5em;
+    color: var(--neutral-darkest);
+}
+
+/* Apply general form styling from #listingForm to auth forms */
+.auth-forms-wrapper > .form-container label {
+    font-weight: 600;
+    color: var(--neutral-dark);
+    font-size: 0.9em;
+    display: block; /* Ensure label takes full width if needed */
+    margin-bottom: var(--space-xs); /* Consistent with #listingForm .form-group gap */
+}
+
+.auth-forms-wrapper > .form-container input[type="text"],
+.auth-forms-wrapper > .form-container input[type="email"],
+.auth-forms-wrapper > .form-container input[type="password"] {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: 1em;
+    font-family: var(--font-secondary);
+    color: var(--neutral-dark);
+    background-color: var(--bg-page);
+    transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+.auth-forms-wrapper > .form-container input[type="text"]:focus,
+.auth-forms-wrapper > .form-container input[type="email"]:focus,
+.auth-forms-wrapper > .form-container input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+}
+
+/* Button styling within auth forms */
+.auth-forms-wrapper > .form-container button[type="submit"].button-style {
+    width: 100%;
+    margin-top: var(--space-md); /* Add space above the button */
+    padding: var(--space-md); /* Ensure padding is consistent if overridden by .button-style */
+}
+
+
+/* Responsive adjustments for auth forms */
+@media (max-width: 900px) { /* Adjust breakpoint as needed */
+    .auth-forms-wrapper {
+        gap: var(--space-lg); /* Reduce gap on medium screens */
+    }
+    .auth-forms-wrapper > .form-container {
+        flex-basis: 100%; /* Stack them sooner if needed */
+        max-width: 500px; /* Control max width when stacked */
+    }
+}
+
+
+/* ==========================================================================
    No Deals Message & Skeleton Loaders
    ========================================================================== */
 .no-deals-message, .skeleton-card { 
@@ -1057,6 +1145,10 @@ a:focus-visible {
     .modal-image-container { flex-basis: auto; max-height: 180px; } /* Smaller modal image */
     .modal-details h3 { font-size: 1.3em; }
     .modal-price { font-size: 1.6em; }
+
+    .auth-forms-wrapper > .form-container {
+        padding: var(--space-lg); /* Reduce padding on very small screens */
+    }
 }
 
 /* --- Ending Soon Indicator --- */

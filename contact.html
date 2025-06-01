@@ -31,34 +31,36 @@
                 <p>Have questions, feedback, or interested in partnering with us? We'd love to hear from you!</p>
                 <p><strong>Important:</strong> For questions about specific deals listed on the site, please contact the seller directly using the details provided in the deal listing modal.</p>
 
-                <!-- Contact Form - Setup for Formspree -->
-                <!-- 1. Go to formspree.io and create a new form. -->
-                <!-- 2. Replace 'YOUR_UNIQUE_FORM_ID' below with your actual Formspree form ID. -->
-                <!-- 3. After the first submission, Formspree will send a confirmation email to the email address associated with your Formspree account. Click the link in that email to activate the form. -->
-                <form action="https://formspree.io/f/YOUR_UNIQUE_FORM_ID" method="POST" id="contactForm">
-                    <div class="form-group">
-                        <label for="contactName">Your Name:</label>
-                        <input type="text" id="contactName" name="name" required> <!-- Changed name to 'name' -->
-                    </div>
-                    <div class="form-group">
-                        <label for="contactEmail">Your Email:</label>
-                        <input type="email" id="contactEmail" name="email" required> <!-- Changed name to 'email' -->
-                    </div>
-                    <input type="hidden" name="_replyto" value="$(contactEmail.value)"> <!-- For Formspree: uses the email from the form -->
-                    <div class="form-group">
-                        <label for="contactSubject">Subject:</label>
-                        <input type="text" id="contactSubject" name="subject"> <!-- Changed name to 'subject' -->
-                    </div>
-                    <input type="hidden" name="_subject" value="New Contact Form Submission from Mzansi Fresh Finds"> <!-- For Formspree: sets email subject -->
-                    <div class="form-group">
-                        <label for="contactMessage">Message:</label>
-                        <textarea id="contactMessage" name="message" rows="6" required></textarea> <!-- Changed name to 'message' -->
-                    </div>
-                    <button type="submit" class="button-style">Send Message</button>
-                    <p style="font-size: 0.8em; margin-top: var(--space-sm);">*Submissions are handled by Formspree. You'll need to confirm your email with them after the first submission to activate this form.</p>
-                </form>
-                
-                <p style="margin-top: var(--space-xl);">Alternatively, you can reach us via email at: <a href="mailto:info@mzansifreshfinds.placeholder.co.za">info@mzansifreshfinds.placeholder.co.za</a> (Replace with your real email address).</p>
+                <div class="contact-form-wrapper">
+                    <!-- Contact Form - Setup for Formspree -->
+                    <!-- 1. Go to formspree.io and create a new form. -->
+                    <!-- 2. Replace 'YOUR_UNIQUE_FORM_ID' below with your actual Formspree form ID. -->
+                    <!-- 3. After the first submission, Formspree will send a confirmation email to the email address associated with your Formspree account. Click the link in that email to activate the form. -->
+                    <form action="https://formspree.io/f/YOUR_UNIQUE_FORM_ID" method="POST" id="contactForm">
+                        <div class="form-group">
+                            <label for="contactName">Your Name:</label>
+                            <input type="text" id="contactName" name="name" required> <!-- Changed name to 'name' -->
+                        </div>
+                        <div class="form-group">
+                            <label for="contactEmail">Your Email:</label>
+                            <input type="email" id="contactEmail" name="email" required> <!-- Changed name to 'email' -->
+                        </div>
+                        <input type="hidden" name="_replyto" value="$(contactEmail.value)"> <!-- For Formspree: uses the email from the form -->
+                        <div class="form-group">
+                            <label for="contactSubject">Subject:</label>
+                            <input type="text" id="contactSubject" name="subject"> <!-- Changed name to 'subject' -->
+                        </div>
+                        <input type="hidden" name="_subject" value="New Contact Form Submission from Mzansi Fresh Finds"> <!-- For Formspree: sets email subject -->
+                        <div class="form-group">
+                            <label for="contactMessage">Message:</label>
+                            <textarea id="contactMessage" name="message" rows="6" required></textarea> <!-- Changed name to 'message' -->
+                        </div>
+                        <button type="submit" class="button-style">Send Message</button>
+                        <p class="formspree-note">*Submissions are handled by Formspree. You'll need to confirm your email with them after the first submission to activate this form.</p>
+                    </form>
+
+                    <p class="alternative-contact">Alternatively, you can reach us via email at: <a href="mailto:info@mzansifreshfinds.placeholder.co.za">info@mzansifreshfinds.placeholder.co.za</a> (Replace with your real email address).</p>
+                </div>
 
             </section>
         </div>

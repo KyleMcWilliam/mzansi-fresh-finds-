@@ -152,6 +152,7 @@ function attachViewDealListeners() {
 }
 
 function handleViewDealButtonClick(event) {
+    event.preventDefault(); // Add this line
     const dealId = event.currentTarget.dataset.dealId;
     if (dealId && viewDealHandler) { // viewDealHandler is the callback from app.js
         viewDealHandler(dealId, event.currentTarget); // Pass the button element

@@ -153,8 +153,8 @@ function attachViewDealListeners() {
 
 function handleViewDealButtonClick(event) {
     const dealId = event.currentTarget.dataset.dealId;
-    if (dealId && viewDealHandler) {
-        viewDealHandler(dealId);
+    if (dealId && viewDealHandler) { // viewDealHandler is the callback from app.js
+        viewDealHandler(dealId, event.currentTarget); // Pass the button element
     }
 }
 
@@ -233,5 +233,87 @@ export function showUpdateNotification() {
         // });
     } else {
         console.warn('PWA update notification elements not found.');
+    }
+}
+
+/**
+ * Displays a toast notification message.
+ *
+ * @param {string} message The message to display.
+ * @param {'success' | 'error'} type The type of toast (success or error).
+ * @param {number} duration The duration in milliseconds for the toast to be visible.
+ */
+export function showToast(message, type = 'success', duration = 3000) {
+    let toastContainer = document.getElementById('toast-container');
+
+    // Create container if it doesn't exist
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+
+
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    toast.appendChild(messageSpan);
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'toast-close-btn';
+    closeButton.innerHTML = '&times;';
+    closeButton.setAttribute('aria-label', 'Close');
+    closeButton.onclick = () => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    };
+
+    toast.appendChild(closeButton);
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    setTimeout(() => {
+        if (toast.parentElement && toast.classList.contains('show')) {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
+    }, duration);
+}
+
+/**
+ * Sets the loading state for a button.
+ *
+ * @param {HTMLButtonElement} buttonElement The button element.
+ * @param {boolean} isLoading Whether the button should be in a loading state.
+ */
+export function setButtonLoadingState(buttonElement, isLoading) {
+    if (!buttonElement) return;
+
+    if (isLoading) {
+        // Store original HTML only if it hasn't been stored yet
+        if (!buttonElement.dataset.originalHtml) {
+            buttonElement.dataset.originalHtml = buttonElement.innerHTML;
+        }
+        buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <span class="btn-loading-text">Loading...</span>`;
+        buttonElement.disabled = true;
+    } else {
+        // Restore original HTML if it was stored
+        if (buttonElement.dataset.originalHtml) {
+            buttonElement.innerHTML = buttonElement.dataset.originalHtml;
+            // Clear the stored attribute after restoring
+            delete buttonElement.dataset.originalHtml;
+        }
+        // Even if originalHTML wasn't set (e.g. if called with isLoading=false initially),
+        // ensure disabled is false.
+        buttonElement.disabled = false;
     }
 }

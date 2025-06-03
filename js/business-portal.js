@@ -1,5 +1,6 @@
 // js/business-portal.js
 import { isValidEmail, isNotEmpty, isPasswordComplex, displayError, clearError, clearAllErrors } from './validation.js';
+import { showToast, setButtonLoadingState } from '../ui.js';
 
 // --- Helper: Check current page ---
 function isPage(pageName) {
@@ -310,6 +311,12 @@ export function handleFormSubmit(event) {
         console.error("listingForm not found. Cannot handle form submission.");
         return;
     }
+
+    const saveBtn = listingForm.querySelector('button[type="submit"]'); // Get the submit button
+    if (saveBtn) {
+        setButtonLoadingState(saveBtn, true);
+    }
+
     const formData = new FormData(listingForm);
     const newListing = {};
     formData.forEach((value, key) => {
@@ -328,9 +335,39 @@ export function handleFormSubmit(event) {
     newListing.id = 'new' + Date.now().toString();
     console.log('New Listing Data:', newListing);
 
-    currentListings.push(newListing); // Add to the global array
-    renderListings(currentListings); // Re-render
-    closeModal(); // Close modal
+    // Simulate backend save and show toast
+    // In a real app, this would be after a successful response from a backend API
+    saveListingToBackend(newListing)
+        .then(() => {
+            showToast('Listing saved successfully!', 'success');
+            currentListings.push(newListing); // Add to the global array
+            renderListings(currentListings); // Re-render
+            closeModal(); // Close modal
+        })
+        .catch(error => {
+            console.error('Failed to save listing:', error);
+            showToast('Failed to save listing. Please try again.', 'error');
+            // Optionally, do not close modal or clear form if save fails
+        })
+        .finally(() => {
+            if (saveBtn) {
+                setButtonLoadingState(saveBtn, false);
+            }
+        });
+}
+
+// Simulated backend function (replace with actual API call)
+async function saveListingToBackend(listingData) {
+    console.log("Listing data to save (simulated backend):", listingData);
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Simulate success/failure (can be made random for testing)
+    if (Math.random() < 0.95) { // 95% success rate
+        return Promise.resolve({ success: true, id: listingData.id });
+    } else {
+        return Promise.reject({ success: false, message: "Simulated server error." });
+    }
 }
 
 // Setter for currentListings for testing purposes

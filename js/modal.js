@@ -142,3 +142,10 @@ export function initModal(getDealByIdFunction) {
     });
     console.log("Modal system initialized.");
 }
+
+// Make openDealModal available for app.js if needed, though direct call to populate and open is better
+// export function openDealModal(dealId) {
+//     populateModalWithDeal(dealId);
+//     openModal();
+// }
+// No specific export needed for openDealModal as app.js will call populateModalWithDeal and openModal directly.

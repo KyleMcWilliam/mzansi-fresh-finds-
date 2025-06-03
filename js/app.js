@@ -4,7 +4,8 @@ let allDeals = []; // To store fetched deals
 
 // Import functions from deals.js and ui.js
 import { fetchDeals, getFilteredAndSortedDeals, getDealById } from './deals.js';
-import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals } from './ui.js';
+import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState } from './ui.js';
+import { populateModalWithDeal, openModal } from './modal.js';
 
 // DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
@@ -75,14 +76,22 @@ async function filterAndRenderDeals() {
         renderDeals(dealsToDisplay, searchTerm, category);
 
         if (dealsToDisplay.length === 0) {
+            // showNoDealsMessage(searchTerm, category); // showToast can be used or this can be kept
+            if (searchTerm || category !== 'all') {
+                showToast('No deals match your current filters.', 'error', 5000);
+            } else {
+                // showToast('No deals available at the moment. Check back soon!', 'success', 5000); // Or keep showNoDealsMessage
+            }
+            // Retain showNoDealsMessage for richer HTML content if preferred over simple toast for this specific case
             showNoDealsMessage(searchTerm, category);
         }
     } catch (error) {
         console.error("Error fetching or rendering deals:", error);
-        // Optionally, display a more user-friendly error message in the UI
+        showToast('Could not load deals. Please try again later.', 'error');
         const dealsContainer = document.getElementById('deals-container');
         if (dealsContainer) {
-            dealsContainer.innerHTML = '<p class="error-message">Could not load deals. Please try again later.</p>';
+            // Keep the more descriptive message in the container as well, or rely solely on toast
+            dealsContainer.innerHTML = '<p class="error-message">Could not load deals. Please try refreshing the page or check back soon.</p>';
         }
     }
 }
@@ -92,6 +101,11 @@ async function filterAndRenderDeals() {
  */
 async function clearAllFiltersAndRender() {
     console.log("clearAllFiltersAndRender called");
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        setButtonLoadingState(clearBtn, true);
+    }
+
     // Reset UI filter elements using setFilterValues from ui.js
     setFilterValues({ searchTerm: '', category: 'all', sortBy: 'default' });
 
@@ -100,33 +114,50 @@ async function clearAllFiltersAndRender() {
 
     updateCategoryFilterVisuals('all'); // Reset category filter visual cue
 
-    await filterAndRenderDeals(); // Re-fetch and render with cleared filters
+    try {
+        await filterAndRenderDeals(); // Re-fetch and render with cleared filters
+    } finally {
+        if (clearBtn) {
+            // Optional: small delay if the operation is too fast
+            setTimeout(() => setButtonLoadingState(clearBtn, false), 200);
+        }
+    }
 }
 
 /**
  * Handles the action when a user wants to view details of a specific deal.
  * @param {string} dealId - The ID of the deal to view.
+ * @param {HTMLButtonElement} buttonElement - The button element that was clicked.
  */
-async function handleViewDeal(dealId) {
-    console.log(`handleViewDeal called for deal ID: ${dealId}`);
+async function handleViewDeal(dealId, buttonElement) {
+    console.log(`handleViewDeal called for deal ID: ${dealId}, button:`, buttonElement);
+    if (buttonElement) {
+        setButtonLoadingState(buttonElement, true);
+    }
+
     try {
         // Ensure deals are loaded before trying to get one by ID
         if (allDeals.length === 0) {
            allDeals = await fetchDeals('data/deals.json');
         }
-        const deal = getDealById(dealId); // Assumes getDealById is synchronous after deals are fetched
+        // Simulate a short delay to ensure spinner is visible
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        const deal = getDealById(dealId);
         if (deal) {
-            console.log("Deal details:", deal);
-            // TODO: Implement modal display logic here
-            // For now, just logging. Example:
-            alert(`Deal Details:\nName: ${deal.itemName}\nBusiness: ${deal.businessName}\nPrice: R${deal.discountedPrice}`);
+            populateModalWithDeal(deal);
+            openModal();
         } else {
             console.warn(`Deal with ID ${dealId} not found.`);
-            alert("Sorry, this deal could not be found.");
+            showToast(`Deal with ID ${dealId} not found.`, 'error');
         }
     } catch (error) {
         console.error("Error handling view deal:", error);
-        alert("An error occurred while trying to view the deal details.");
+        showToast("An error occurred while trying to view the deal details.", 'error');
+    } finally {
+        if (buttonElement) {
+            setButtonLoadingState(buttonElement, false);
+        }
     }
 }
 
@@ -134,12 +165,18 @@ async function handleViewDeal(dealId) {
  * Applies current filter and sort values to the product list and re-renders it.
  */
 function applyFiltersAndSort() {
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
+    if (applyFiltersBtn) {
+        setButtonLoadingState(applyFiltersBtn, true);
+    }
+
     const categoryValue = document.getElementById('category-filter').value;
     const farmerValue = document.getElementById('farmer-filter').value.trim().toLowerCase();
     const productListingContainer = document.getElementById('product-listing');
 
     if (!productListingContainer) {
         console.error("Product listing container not found for filtering/sorting.");
+        if (applyFiltersBtn) setButtonLoadingState(applyFiltersBtn, false); // Reset button if container not found
         return;
     }
 
@@ -159,6 +196,11 @@ function applyFiltersAndSort() {
     const sortedAndFilteredProducts = applySort(filteredProducts);
 
     renderProducts(sortedAndFilteredProducts, productListingContainer);
+
+    if (applyFiltersBtn) {
+        // Brief delay to ensure user sees the loading state
+        setTimeout(() => setButtonLoadingState(applyFiltersBtn, false), 200);
+    }
 }
 
 /**
@@ -213,7 +255,8 @@ async function fetchProductsAndRender() {
         return Promise.resolve(); // Resolve the promise upon success
     } catch (error) {
         console.error("Error fetching or parsing products:", error);
-        productListingContainer.innerHTML = '<p>Error loading products. Please try again later.</p>';
+        showToast('Error loading products. Please try again later.', 'error');
+        productListingContainer.innerHTML = '<p>Error loading products. Please try again later.</p>'; // Keep this as a fallback in-page message
         return Promise.reject(error); // Reject the promise on error
     }
 }

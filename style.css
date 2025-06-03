@@ -50,6 +50,7 @@
     /* Transitions */
     --transition-fast: 0.15s ease-out;
     --transition-medium: 0.25s ease-out;
+    --transition-std: 0.2s ease-out; /* Standard transition for buttons, links, inputs */
     --transition-slow: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 
     /* Fonts */
@@ -150,17 +151,22 @@ a {
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
     font-weight: 600;
-    transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+    transition: color var(--transition-std), text-decoration-color var(--transition-std);
 }
-a:hover, a:focus {
+a:hover { /* Keep focus separate for a:focus-visible */
     color: var(--primary-green-dark);
-    text-decoration-color: var(--primary-green-dark); /* Change underline color on hover */
-    outline: none; /* Remove default focus outline if providing custom below */
+    text-decoration-color: var(--primary-green-dark);
 }
 /* Custom focus style for links */
+a:focus { /* Fallback for browsers not supporting focus-visible or for explicit focus */
+    outline: 2px solid var(--primary-green-light);
+    outline-offset: 2px; /* Consistent offset */
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+}
 a:focus-visible {
     outline: 2px solid var(--primary-green-light);
-    outline-offset: 3px;
+    outline-offset: 2px; /* Consistent offset */
     border-radius: var(--border-radius-sm);
     text-decoration: none;
 }
@@ -269,7 +275,7 @@ a:focus-visible {
     font-family: var(--font-secondary);
     color: var(--neutral-dark);
     background-color: var(--bg-page);
-    transition: border-color var(--transition-medium), box-shadow var(--transition-medium), background-color var(--transition-medium);
+    transition: border-color var(--transition-std), box-shadow var(--transition-std), background-color var(--transition-std);
 }
 .filters input[type="text"] {
     padding-left: calc(var(--space-md) * 3); /* Ensure space for icon */
@@ -314,6 +320,13 @@ a:focus-visible {
     background-color: var(--neutral-light);
     border-color: var(--neutral-light);
     color: var(--neutral-darkest);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+.clear-filters-btn:focus-visible {
+    outline: 2px solid var(--primary-green);
+    outline-offset: 2px;
+    box-shadow: none;
 }
 .clear-filters-btn i { margin-right: var(--space-xs); }
 
@@ -339,11 +352,11 @@ a:focus-visible {
     flex-direction: column;
     opacity: 0;
     animation: fadeInUp 0.5s ease-out forwards;
-    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+    transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
 }
 .deal-card:hover {
-    transform: translateY(-5px); /* Slightly more lift */
-    box-shadow: var(--shadow-md); /* Use medium shadow on hover */
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
 }
 .deals-section .deal-card:nth-child(-n+4) { /* Animate first few instantly */
     animation-delay: inherit !important;
@@ -440,7 +453,7 @@ a:focus-visible {
     font-family: var(--font-primary);
     border-radius: var(--border-radius-md);
     cursor: pointer;
-    transition: background-color var(--transition-medium), transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition: background-color var(--transition-std), color var(--transition-std), border-color var(--transition-std), transform var(--transition-std), box-shadow var(--transition-std);
     align-self: flex-start; /* Align to start */
     box-shadow: var(--shadow-sm);
 }
@@ -448,11 +461,17 @@ a:focus-visible {
     font-size: 0.9em;
     color: var(--primary-green-accessible-text);
 }
-.deal-card .view-deal-btn:hover, .deal-card .view-deal-btn:focus-visible {
+.deal-card .view-deal-btn:hover {
     background-color: var(--primary-green-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    outline: none;
+}
+.deal-card .view-deal-btn:focus-visible {
+    background-color: var(--primary-green-dark); /* Consistent with hover */
+    transform: translateY(-2px); /* Consistent with hover */
+    outline: 2px solid var(--primary-green);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
 }
 .deal-card .view-deal-btn:active {
     transform: translateY(0px);
@@ -485,11 +504,18 @@ a:focus-visible {
     text-decoration: none;
     font-weight: 600;
     padding: 0.5em; /* Add some padding for better click targets */
+    transition: color var(--transition-std), text-decoration-color var(--transition-std);
+    border-radius: var(--border-radius-sm);
 }
-.main-nav ul li a:hover,
-.main-nav ul li a:focus {
+.main-nav ul li a:hover {
     color: var(--primary-green-light);
     text-decoration: underline;
+    text-decoration-color: var(--primary-green-light);
+}
+.main-nav ul li a:focus-visible {
+    outline: 2px solid var(--primary-green-light);
+    outline-offset: 2px;
+    text-decoration: none;
 }
 
 /* --- Footer Navigation --- */
@@ -513,12 +539,19 @@ a:focus-visible {
     color: var(--primary-green-light);
     text-decoration: none;
     font-weight: 600;
+    transition: color var(--transition-std), text-decoration-color var(--transition-std);
+    border-radius: var(--border-radius-sm);
 }
 
-.footer-nav ul.footer-links li a:hover,
-.footer-nav ul.footer-links li a:focus {
+.footer-nav ul.footer-links li a:hover {
     color: var(--white-text-for-dark-bg);
     text-decoration: underline;
+    text-decoration-color: var(--white-text-for-dark-bg);
+}
+.footer-nav ul.footer-links li a:focus-visible {
+    outline: 2px solid var(--primary-green-light);
+    outline-offset: 2px;
+    text-decoration: none;
 }
 
 /* ==========================================================================
@@ -756,32 +789,57 @@ a:focus-visible {
 }
 
 /* Styling for Edit and Delete buttons within a listing */
+/* These inherit .button-style transitions but have specific color overrides */
 .listing-item-actions .button-style {
     padding: var(--space-sm) var(--space-md); /* Smaller padding for action buttons */
     font-size: 0.85em;
     text-transform: none; /* Or keep uppercase if preferred */
+    /* Transitions are inherited from .button-style */
 }
 
 .button-edit {
     background-color: var(--accent-yellow);
-    border-color: var(--accent-yellow);
-    color: var(--neutral-darkest); /* Ensure contrast */
-}
-.button-edit:hover, .button-edit:focus {
-    background-color: #d39e00; /* Darker yellow */
-    border-color: #d39e00;
+    border: 1px solid var(--accent-yellow);
     color: var(--neutral-darkest);
 }
+.button-edit:hover {
+    background-color: #d39e00;
+    border-color: #d39e00;
+    color: var(--neutral-darkest);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.button-edit:focus-visible {
+    background-color: #d39e00;
+    border-color: #d39e00;
+    color: var(--neutral-darkest);
+    transform: translateY(-2px);
+    outline: 2px solid var(--accent-yellow);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px rgba(227, 158, 0, 0.3);
+}
+
 
 .button-delete {
-    background-color: var(--accent-orange); /* Or a red like #E74C3C */
-    border-color: var(--accent-orange);
+    background-color: var(--accent-orange);
+    border: 1px solid var(--accent-orange);
     color: var(--white-text-for-dark-bg);
 }
-.button-delete:hover, .button-delete:focus {
-    background-color: #c0392b; /* Darker red/orange */
+.button-delete:hover {
+    background-color: #c0392b;
     border-color: #c0392b;
     color: var(--white-text-for-dark-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.button-delete:focus-visible {
+    background-color: #c0392b;
+    border-color: #c0392b;
+    color: var(--white-text-for-dark-bg);
+    transform: translateY(-2px);
+    outline: 2px solid var(--accent-orange);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.3);
 }
 
 /* Ensure the main "Add New Listing" button is prominent */
@@ -900,12 +958,19 @@ a:focus-visible {
     cursor: pointer;
     padding: var(--space-xs);
     line-height: 1;
-    transition: color var(--transition-fast), transform var(--transition-fast);
+    transition: background-color var(--transition-std), color var(--transition-std), border-color var(--transition-std), transform var(--transition-std), box-shadow var(--transition-std);
+    border-radius: var(--border-radius-sm);
 }
-.modal-close:hover, .modal-close:focus {
+.modal-close:hover {
     color: var(--neutral-darkest);
-    transform: scale(1.1);
-    outline: none;
+    background-color: rgba(0,0,0,0.05);
+    transform: scale(1.05) rotate(5deg);
+}
+.modal-close:focus-visible {
+    color: var(--neutral-darkest);
+    outline: 2px solid var(--primary-green);
+    outline-offset: 1px;
+    box-shadow: none;
 }
 .modal-body {
     display: flex;
@@ -1014,7 +1079,7 @@ a:focus-visible {
     font-family: var(--font-secondary);
     color: var(--neutral-dark);
     background-color: var(--bg-page);
-    transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+    transition: border-color var(--transition-std), box-shadow var(--transition-std);
 }
 
 #listingForm input[type="text"]:focus,
@@ -1025,6 +1090,7 @@ a:focus-visible {
     outline: none;
     border-color: var(--primary-green);
     box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+    background-color: var(--bg-card);
 }
 
 #listingForm textarea {
@@ -1060,14 +1126,25 @@ a:focus-visible {
 
 #listingForm .button-cancel {
     background-color: var(--neutral-lightest);
-    border-color: var(--neutral-lightest);
+    border: 1px solid var(--neutral-lightest);
     color: var(--neutral-darkest);
+    /* Transitions are inherited from .button-style */
 }
-#listingForm .button-cancel:hover,
-#listingForm .button-cancel:focus {
+#listingForm .button-cancel:hover {
     background-color: var(--neutral-light);
     border-color: var(--neutral-light);
-    color: var(--neutral-darkest); /* Ensure text color changes for contrast if bg becomes too light */
+    color: var(--neutral-darkest);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+#listingForm .button-cancel:focus-visible {
+    background-color: var(--neutral-light);
+    border-color: var(--neutral-light);
+    color: var(--neutral-darkest);
+    transform: translateY(-2px);
+    outline: 2px solid var(--neutral-medium);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.3);
 }
 
 #listingForm input[type="date"] {
@@ -1118,7 +1195,7 @@ a:focus-visible {
     width: 48px; /* Adjusted size */
     height: 48px;
     box-shadow: var(--shadow-md);
-    transition: opacity var(--transition-medium), transform var(--transition-medium), background-color var(--transition-medium);
+    transition: background-color var(--transition-std), color var(--transition-std), border-color var(--transition-std), transform var(--transition-std), box-shadow var(--transition-std), opacity var(--transition-std);
     opacity: 0;
     transform: scale(0.8); /* Start smaller */
     display: flex; /* Use flex to center icon */
@@ -1130,11 +1207,18 @@ a:focus-visible {
     opacity: 0.9; /* Slightly transparent */
     transform: scale(1);
 }
-#scrollToTopBtn:hover, #scrollToTopBtn:focus-visible {
+#scrollToTopBtn:hover {
+    background-color: var(--primary-green-dark);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    opacity: 1;
+}
+#scrollToTopBtn:focus-visible {
     background-color: var(--primary-green-dark);
     box-shadow: var(--shadow-lg);
     opacity: 1;
-    outline: none;
+    outline: 2px solid var(--primary-green);
+    outline-offset: 2px;
 }
 
 /* ==========================================================================
@@ -1194,7 +1278,7 @@ a:focus-visible {
     font-family: var(--font-secondary);
     color: var(--neutral-dark);
     background-color: var(--bg-page);
-    transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+    transition: border-color var(--transition-std), box-shadow var(--transition-std);
 }
 
 .auth-forms-wrapper > .form-container input[type="text"]:focus,
@@ -1203,6 +1287,7 @@ a:focus-visible {
     outline: none;
     border-color: var(--primary-green);
     box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+    background-color: var(--bg-card);
 }
 
 /* Button styling within auth forms */
@@ -1269,7 +1354,7 @@ a:focus-visible {
     font-family: var(--font-secondary);
     color: var(--neutral-dark);
     background-color: var(--bg-page);
-    transition: border-color var(--transition-medium), box-shadow var(--transition-medium);
+    transition: border-color var(--transition-std), box-shadow var(--transition-std);
 }
 
 .contact-form-wrapper #contactForm input[type="text"]:focus,
@@ -1278,6 +1363,7 @@ a:focus-visible {
     outline: none;
     border-color: var(--primary-green);
     box-shadow: 0 0 0 3px var(--primary-green-focus-shadow);
+    background-color: var(--bg-card);
 }
 
 .contact-form-wrapper #contactForm textarea {
@@ -1506,23 +1592,108 @@ a:focus-visible {
     font-family: var(--font-primary);
     border-radius: var(--border-radius-md);
     cursor: pointer;
-    transition: background-color var(--transition-medium), color var(--transition-medium), border-color var(--transition-medium), transform var(--transition-fast), box-shadow var(--transition-fast);
+    /* Standardized transition for all button properties */
+    transition: background-color var(--transition-std), color var(--transition-std), border-color var(--transition-std), transform var(--transition-std), box-shadow var(--transition-std);
     box-shadow: var(--shadow-sm);
 }
 
-.button-style:hover,
-.button-style:focus,
-.button-style:focus-visible {
+.button-style:hover {
     background-color: var(--primary-green-dark);
-    border-color: var(--primary-green-dark);
+    border-color: var(--primary-green-dark); /* Ensure border color changes with background */
     color: var(--primary-green-accessible-text);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    text-decoration: none; /* Ensure no underline on hover/focus for <a> */
-    outline: none; /* Custom focus handled by box-shadow or could add outline if needed */
+    text-decoration: none;
+}
+.button-style:focus { /* Fallback focus style */
+    background-color: var(--primary-green-dark);
+    border-color: var(--primary-green-dark);
+    color: var(--primary-green-accessible-text);
+    outline: 2px solid var(--primary-green); /* Simple outline for general focus */
+    outline-offset: 2px;
+    text-decoration: none;
+}
+.button-style:focus-visible {
+    background-color: var(--primary-green-dark); /* Consistent with hover */
+    border-color: var(--primary-green-dark); /* Consistent with hover */
+    color: var(--primary-green-accessible-text); /* Consistent with hover */
+    transform: translateY(-2px); /* Consistent with hover */
+    outline: 2px solid var(--primary-green); /* Outline for accessibility */
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--primary-green-focus-shadow); /* More prominent focus shadow */
+    text-decoration: none;
 }
 
 .button-style:active {
     transform: translateY(0px);
     box-shadow: var(--shadow-inset);
+    background-color: var(--primary-green-dark); /* Keep active state consistent */
+}
+
+/* ==========================================================================
+   Toast Notification Styles
+   ========================================================================== */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 320px; /* Limit width of toasts */
+}
+
+.toast {
+    padding: 15px 20px;
+    border-radius: var(--border-radius-md);
+    color: var(--white-text-for-dark-bg);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: flex; /* For aligning text and close button */
+    justify-content: space-between; /* Pushes close button to the end */
+    align-items: center; /* Vertically aligns text and close button */
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast--success {
+    background-color: var(--primary-green);
+}
+
+.toast--error {
+    background-color: var(--accent-orange); /* Or use a specific error red like #E74C3C */
+}
+
+.toast-close-btn {
+    background: transparent;
+    border: none;
+    color: inherit; /* Inherits color from parent (.toast--success or .toast--error) */
+    font-size: 1.5em; /* Made slightly larger for easier clicking */
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 15px; /* Space between message and close button */
+    padding: 0 5px; /* Add some padding for easier clicking */
+    line-height: 1; /* Ensure consistent vertical alignment */
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+}
+
+.toast-close-btn:hover,
+.toast-close-btn:focus {
+    opacity: 1;
+    outline: none; /* Minimal focus for now, could add a subtle ring if needed */
+}
+
+.button-style .fa-spinner {
+    margin-right: 8px;
+}
+/* Optional: if you add a span for loading text like <span class="btn-loading-text">Loading...</span> */
+.button-style .btn-loading-text {
+    /* No specific styles needed by default, but can be used for customization */
 }

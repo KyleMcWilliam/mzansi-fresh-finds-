@@ -2,10 +2,12 @@
 import { formatDate, getPlaceholderImage } from './utils.js';
 
 // --- DOM Elements ---
-let dealsContainer, searchInput, categoryFilter, sortDealsSelect, clearFiltersBtn;
+// These are now mostly set within initUI or passed as arguments to rendering functions
+// let dealsContainer, searchInput, categoryFilter, sortDealsSelect, clearFiltersBtn;
 
 // Callback for handling "View Deal" clicks, to be set by initUI
-let viewDealHandler;
+let viewDealHandler; // Remains for deals.html modal
+let filterAndRenderCallbackGlobal; // Remains for deals.html category links in no deals message
 
 // --- UI Rendering Functions ---
 function createSkeletonCard() {
@@ -24,198 +26,231 @@ function createSkeletonCard() {
     return skeletonCard;
 }
 
-export function showSkeletonLoaders(count = 6) {
-    if (!dealsContainer) return;
-    dealsContainer.innerHTML = '';
+export function showSkeletonLoaders(containerElement, count = 6) { // Added containerElement
+    if (!containerElement) {
+        console.warn("showSkeletonLoaders: Container element not provided.");
+        return;
+    }
+    containerElement.innerHTML = ''; // Clear previous content
     for (let i = 0; i < count; i++) {
-        dealsContainer.appendChild(createSkeletonCard());
+        containerElement.appendChild(createSkeletonCard());
     }
 }
 
-export function showNoDealsMessage(currentSearchTerm, currentSelectedCategory) {
-    if (!dealsContainer) return;
+export function showNoDealsMessage(containerElement, currentSearchTerm = '', currentSelectedCategory = 'all') { // Added containerElement
+    if (!containerElement) {
+        console.warn("showNoDealsMessage: Container element not provided.");
+        return;
+    }
     let message = `<p>No fresh finds match your current criteria.</p>`;
     if (currentSearchTerm || currentSelectedCategory !== 'all') {
         message += `<p class="suggestions">Try broadening your search, checking <a href="#" data-category-link="all">all categories</a>, or explore popular ones like <a href="#" data-category-link="bakery">Bakery</a> or <a href="#" data-category-link="fruitveg">Fruit & Veg</a>.</p>`;
     } else {
         message += `<p class="suggestions">Check back soon for new deals or <a href="#business-signup-placeholder">invite local businesses</a> to join!</p>`;
     }
-    dealsContainer.innerHTML = `
+    containerElement.innerHTML = `
         <div class="no-deals-message">
             <i class="fas fa-shopping-basket"></i>
             ${message}
         </div>
     `;
-    // Add event listeners to suggestion links
-    dealsContainer.querySelectorAll('[data-category-link]').forEach(link => {
+    // Add event listeners to suggestion links (relevant for deals.html context)
+    containerElement.querySelectorAll('[data-category-link]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            if (categoryFilter) {
-                categoryFilter.value = e.target.dataset.categoryLink;
-                // Assuming filterAndRenderCallback is available or handled by the main app logic
-                // This might need to call a callback provided in initUI if direct filtering is needed here
-                if (typeof filterAndRenderCallbackGlobal !== 'undefined') { // Temporary check
+            const categoryFilterEl = document.getElementById('categoryFilter'); // Assume it exists on deals.html
+            if (categoryFilterEl) {
+                categoryFilterEl.value = e.target.dataset.categoryLink;
+                if (typeof filterAndRenderCallbackGlobal === 'function') {
                     filterAndRenderCallbackGlobal();
                 }
             }
         });
     });
 }
-// Store the global callback from initUI for showNoDealsMessage, this is a bit of a hack.
-// A better way would be for showNoDealsMessage to also accept the callback.
-let filterAndRenderCallbackGlobal;
 
-export function renderDeals(dealsToRender, currentSearchTerm, currentSelectedCategory) {
-    if (!dealsContainer) {
-        console.warn("Deals container not found. Cannot render deals.");
+// Adapting renderDeals to renderConsumerDeals for products.html context.
+// It now accepts containerElement as an argument.
+// The parameters currentSearchTerm, currentSelectedCategory are for showNoDealsMessage.
+export function renderDeals(dealsToRender, containerElement, currentSearchTerm = '', currentSelectedCategory = 'all') {
+    if (!containerElement) {
+        console.warn("renderDeals: Container element not provided.");
         return;
     }
-    dealsContainer.innerHTML = '';
+    containerElement.innerHTML = ''; // Clear previous content
     if (!dealsToRender || dealsToRender.length === 0) {
-        showNoDealsMessage(currentSearchTerm, currentSelectedCategory);
+        showNoDealsMessage(containerElement, currentSearchTerm, currentSelectedCategory);
         return;
     }
 
-    const ENDING_SOON_THRESHOLD_DAYS = 2; // Expires within next 2 days (today or tomorrow)
+    const ENDING_SOON_THRESHOLD_DAYS = 2;
 
     dealsToRender.forEach((deal, index) => {
         const dealCard = document.createElement('div');
-        dealCard.classList.add('deal-card');
+        dealCard.classList.add('deal-card'); // General deal card styling
+        // dealCard.classList.add('consumer-deal-card'); // Optional: more specific class for products page styling
         dealCard.style.animationDelay = `${index * 0.05}s`;
 
-        const imageUrl = deal.imageUrl || getPlaceholderImage(deal.category);
+        // Image: deal.imageURL > deal.store.logoURL > placeholder
+        const imageUrl = deal.imageURL || (deal.store && deal.store.logoURL) || getPlaceholderImage(deal.category);
         const imageAlt = deal.itemName || 'Deal product image';
-        const placeholderOnError = getPlaceholderImage(null);
+        const placeholderOnError = getPlaceholderImage(null); // Generic placeholder
         const imageErrorScript = `this.onerror=null; this.src='${placeholderOnError}'; this.alt='Placeholder image';`;
 
         let endingSoonIndicatorHTML = '';
-        if (deal.bestBefore) {
+        if (deal.bestBeforeDate) { // API uses bestBeforeDate
             try {
-                // Ensure date is parsed as local by adding time component if not present
-                const bestBeforeDate = new Date(deal.bestBefore.includes('T') ? deal.bestBefore : deal.bestBefore + 'T00:00:00');
+                const bestBeforeDate = new Date(deal.bestBeforeDate.includes('T') ? deal.bestBeforeDate : deal.bestBeforeDate + 'T00:00:00');
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // Set to midnight for fair comparison
+                today.setHours(0, 0, 0, 0);
 
                 const timeDiff = bestBeforeDate.getTime() - today.getTime();
                 const daysDifference = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
                 if (daysDifference >= 0 && daysDifference < ENDING_SOON_THRESHOLD_DAYS) {
                     let expiryMessage = 'Expires Soon!';
-                    if (daysDifference === 0) {
-                        expiryMessage = 'Expires Today!';
-                    } else if (daysDifference === 1) {
-                        expiryMessage = 'Expires Tomorrow!';
-                    }
+                    if (daysDifference === 0) expiryMessage = 'Expires Today!';
+                    else if (daysDifference === 1) expiryMessage = 'Expires Tomorrow!';
                     endingSoonIndicatorHTML = `<span class="ending-soon-indicator">${expiryMessage}</span>`;
                 }
             } catch (e) {
-                console.warn('Error parsing bestBefore date for deal:', deal.id, deal.bestBefore, e);
+                console.warn('Error parsing bestBeforeDate for deal:', deal._id, deal.bestBeforeDate, e);
             }
         }
+
+        let discountBadgeHTML = '';
+        if (deal.discountPercentage && deal.discountPercentage > 0) {
+            discountBadgeHTML = `<span class="discount-badge">Save ${deal.discountPercentage.toFixed(0)}%</span>`;
+        }
+
+        let distanceHTML = '';
+        if (typeof deal.distanceInKm === 'number' && deal.distanceInKm !== null) {
+            distanceHTML = `<p class="distance"><i class="fas fa-map-marker-alt"></i> ${deal.distanceInKm.toFixed(1)} km away</p>`;
+        }
+
+        // Store name from deal.store.storeName (populated by backend)
+        const storeName = (deal.store && deal.store.storeName) ? deal.store.storeName : 'Unknown Store';
+        const storeLocation = (deal.store && deal.store.address) ? deal.store.address : ''; // Or a more specific location field if available
 
         dealCard.innerHTML = `
             <div class="deal-card-image-container">
                 ${endingSoonIndicatorHTML}
+                ${discountBadgeHTML}
                 <img src="${imageUrl}" alt="${imageAlt}" loading="lazy" onerror="${imageErrorScript}">
             </div>
             <div class="deal-card-content">
                 <h3>${deal.itemName}</h3>
-                <p class="business-name" title="${deal.businessName} - ${deal.location}">
-                    <i class="fas fa-store-alt" aria-hidden="true"></i> ${deal.businessName} - ${deal.location}
+                <p class="business-name" title="${storeName} - ${storeLocation}">
+                    <i class="fas fa-store-alt" aria-hidden="true"></i> ${storeName}
                 </p>
+                ${distanceHTML}
                 <div class="price-container">
                     <span class="price">R${deal.discountedPrice.toFixed(2)}</span>
-                    ${deal.originalPrice ? `<span class="original-price">R${deal.originalPrice.toFixed(2)}</span>` : ''}
+                    ${deal.originalPrice ? `<span class="original-price strikethrough">R${deal.originalPrice.toFixed(2)}</span>` : ''}
                 </div>
                 <p class="best-before" title="Best Before Date">
-                    <i class="far fa-calendar-alt" aria-hidden="true"></i> ${formatDate(deal.bestBefore)}
+                    <i class="far fa-calendar-alt" aria-hidden="true"></i> ${formatDate(deal.bestBeforeDate)}
                 </p>
-                <p class="description">${deal.description}</p>
-                <button class="view-deal-btn" data-deal-id="${deal.id}" aria-label="View details for ${deal.itemName}">
+                <p class="description">${deal.description || ''}</p>
+                <button class="view-deal-btn" data-deal-id="${deal._id}" aria-label="View details for ${deal.itemName}">
                     <i class="fas fa-eye" aria-hidden="true"></i> View Deal
                 </button>
             </div>
         `;
-        dealsContainer.appendChild(dealCard);
+        containerElement.appendChild(dealCard);
     });
 
-    attachViewDealListeners();
+    // Attach listeners for view deal buttons, using the container to scope the query
+    // This assumes that viewDealHandler is relevant for these cards as well (e.g., opens a modal)
+    // If not, this part can be omitted for products.html or use a different handler.
+    if (viewDealHandler) { // Check if viewDealHandler is set (it's set by initUI for deals.html)
+        attachViewDealListeners(containerElement);
+    }
 }
 
-function attachViewDealListeners() {
-    if (!dealsContainer || !viewDealHandler) return;
-    dealsContainer.querySelectorAll('.view-deal-btn').forEach(button => {
-        // Remove existing listener to prevent duplicates if re-rendered
+function attachViewDealListeners(containerElement) { // Added containerElement
+    if (!containerElement || !viewDealHandler) return;
+    containerElement.querySelectorAll('.view-deal-btn').forEach(button => {
         button.removeEventListener('click', handleViewDealButtonClick);
         button.addEventListener('click', handleViewDealButtonClick);
     });
 }
 
 function handleViewDealButtonClick(event) {
-    event.preventDefault(); // Add this line
+    event.preventDefault();
     const dealId = event.currentTarget.dataset.dealId;
-    if (dealId && viewDealHandler) { // viewDealHandler is the callback from app.js
-        viewDealHandler(dealId, event.currentTarget); // Pass the button element
+    if (dealId && viewDealHandler) {
+        viewDealHandler(dealId, event.currentTarget);
     }
 }
 
 
 export function updateCategoryFilterVisuals(selectedCategory) {
-    if (!categoryFilter) return;
+    const categoryFilterEl = document.getElementById('categoryFilter'); // Specific to deals.html
+    if (!categoryFilterEl) return;
     if (selectedCategory !== 'all') {
-        categoryFilter.classList.add('has-filter');
+        categoryFilterEl.classList.add('has-filter');
     } else {
-        categoryFilter.classList.remove('has-filter');
+        categoryFilterEl.classList.remove('has-filter');
     }
 }
 
 export function initUI(applyFiltersCallback, clearFiltersCallback, viewDealCallbackFromApp) {
-    dealsContainer = document.getElementById('deals-container');
-    searchInput = document.getElementById('searchInput');
-    categoryFilter = document.getElementById('categoryFilter');
-    sortDealsSelect = document.getElementById('sortDeals');
-    clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    // These elements are specific to deals.html where initUI is called
+    const dealsContainerEl = document.getElementById('deals-container');
+    const searchInputEl = document.getElementById('searchInput');
+    const categoryFilterEl = document.getElementById('categoryFilter');
+    const sortDealsSelectEl = document.getElementById('sortDeals');
+    const clearFiltersBtnEl = document.getElementById('clearFiltersBtn');
 
-    if (!dealsContainer) console.warn("Element #deals-container not found.");
-    if (!searchInput) console.warn("Element #searchInput not found.");
-    if (!categoryFilter) console.warn("Element #categoryFilter not found.");
-    if (!sortDealsSelect) console.warn("Element #sortDeals not found.");
-    if (!clearFiltersBtn) console.warn("Element #clearFiltersBtn not found.");
+    // if (!dealsContainerEl) console.warn("Element #deals-container not found during initUI.");
+    // if (!searchInputEl) console.warn("Element #searchInput not found during initUI.");
+    // if (!categoryFilterEl) console.warn("Element #categoryFilter not found during initUI.");
+    // if (!sortDealsSelectEl) console.warn("Element #sortDeals not found during initUI.");
+    // if (!clearFiltersBtnEl) console.warn("Element #clearFiltersBtn not found during initUI.");
 
-    viewDealHandler = viewDealCallbackFromApp; // Store the callback for view deal buttons
-    filterAndRenderCallbackGlobal = applyFiltersCallback; // Store for showNoDealsMessage links
+    viewDealHandler = viewDealCallbackFromApp;
+    filterAndRenderCallbackGlobal = applyFiltersCallback;
 
-    if (searchInput) searchInput.addEventListener('input', applyFiltersCallback);
-    if (categoryFilter) categoryFilter.addEventListener('change', applyFiltersCallback);
-    if (sortDealsSelect) sortDealsSelect.addEventListener('change', applyFiltersCallback);
-    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFiltersCallback);
+    if (searchInputEl) searchInputEl.addEventListener('input', applyFiltersCallback);
+    if (categoryFilterEl) categoryFilterEl.addEventListener('change', applyFiltersCallback);
+    if (sortDealsSelectEl) sortDealsSelectEl.addEventListener('change', applyFiltersCallback);
+    if (clearFiltersBtnEl) clearFiltersBtnEl.addEventListener('click', clearFiltersCallback);
 
-    console.log("UI event listeners initialized.");
+    console.log("UI event listeners (for deals.html context) initialized via initUI.");
 }
 
-// Function to get current filter values from UI elements
 export function getFilterValues() {
-    const searchTerm = searchInput ? searchInput.value : '';
-    const category = categoryFilter ? categoryFilter.value : 'all';
-    const sortBy = sortDealsSelect ? sortDealsSelect.value : 'default';
+    // Specific to deals.html elements
+    const searchInputEl = document.getElementById('searchInput');
+    const categoryFilterEl = document.getElementById('categoryFilter');
+    const sortDealsSelectEl = document.getElementById('sortDeals');
+
+    const searchTerm = searchInputEl ? searchInputEl.value : '';
+    const category = categoryFilterEl ? categoryFilterEl.value : 'all';
+    const sortBy = sortDealsSelectEl ? sortDealsSelectEl.value : 'default'; // 'default' might be 'newest' now
     return { searchTerm, category, sortBy };
 }
 
-// Function to set filter values in UI elements (used by loadFilters)
 export function setFilterValues(filters) {
-    if (searchInput && typeof filters.searchTerm !== 'undefined') searchInput.value = filters.searchTerm;
-    if (categoryFilter && typeof filters.category !== 'undefined') categoryFilter.value = filters.category;
-    if (sortDealsSelect && typeof filters.sortBy !== 'undefined') sortDealsSelect.value = filters.sortBy;
+    // Specific to deals.html elements
+    const searchInputEl = document.getElementById('searchInput');
+    const categoryFilterEl = document.getElementById('categoryFilter');
+    const sortDealsSelectEl = document.getElementById('sortDeals');
+
+    if (searchInputEl && typeof filters.searchTerm !== 'undefined') searchInputEl.value = filters.searchTerm;
+    if (categoryFilterEl && typeof filters.category !== 'undefined') categoryFilterEl.value = filters.category;
+    if (sortDealsSelectEl && typeof filters.sortBy !== 'undefined') sortDealsSelectEl.value = filters.sortBy;
 }
 
-// --- PWA Update Notification UI ---
+// --- PWA Update Notification UI --- (Keep as is)
 export function showUpdateNotification() {
     const notificationDiv = document.getElementById('updateNotification');
     const refreshButton = document.getElementById('refreshAppBtn');
 
     if (notificationDiv && refreshButton) {
-        notificationDiv.style.display = 'flex'; // Make it visible
-        setTimeout(() => { // Allow display property to take effect before transition
+        notificationDiv.style.display = 'flex';
+        setTimeout(() => {
             notificationDiv.classList.add('show');
         }, 10);
 
@@ -223,31 +258,14 @@ export function showUpdateNotification() {
         refreshButton.addEventListener('click', () => {
             window.location.reload();
         });
-
-        // Optional: Allow dismissing the notification (not in current plan, but good for UX)
-        // const dismissButton = document.createElement('button');
-        // ... setup dismiss button ...
-        // notificationDiv.appendChild(dismissButton);
-        // dismissButton.addEventListener('click', () => {
-        // notificationDiv.classList.remove('show');
-        // setTimeout(() => notificationDiv.style.display = 'none', 300); // Hide after transition
-        // });
     } else {
         console.warn('PWA update notification elements not found.');
     }
 }
 
-/**
- * Displays a toast notification message.
- *
- * @param {string} message The message to display.
- * @param {'success' | 'error'} type The type of toast (success or error).
- * @param {number} duration The duration in milliseconds for the toast to be visible.
- */
 export function showToast(message, type = 'success', duration = 3000) {
     let toastContainer = document.getElementById('toast-container');
 
-    // Create container if it doesn't exist
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
@@ -290,31 +308,20 @@ export function showToast(message, type = 'success', duration = 3000) {
     }, duration);
 }
 
-/**
- * Sets the loading state for a button.
- *
- * @param {HTMLButtonElement} buttonElement The button element.
- * @param {boolean} isLoading Whether the button should be in a loading state.
- */
 export function setButtonLoadingState(buttonElement, isLoading) {
     if (!buttonElement) return;
 
     if (isLoading) {
-        // Store original HTML only if it hasn't been stored yet
         if (!buttonElement.dataset.originalHtml) {
             buttonElement.dataset.originalHtml = buttonElement.innerHTML;
         }
         buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <span class="btn-loading-text">Loading...</span>`;
         buttonElement.disabled = true;
     } else {
-        // Restore original HTML if it was stored
         if (buttonElement.dataset.originalHtml) {
             buttonElement.innerHTML = buttonElement.dataset.originalHtml;
-            // Clear the stored attribute after restoring
             delete buttonElement.dataset.originalHtml;
         }
-        // Even if originalHTML wasn't set (e.g. if called with isLoading=false initially),
-        // ensure disabled is false.
         buttonElement.disabled = false;
     }
 }

@@ -23,6 +23,18 @@ const StoreSchema = new mongoose.Schema({
         type: Number,
         // Consider adding validation for valid longitude range
     },
+    // New location field for GeoJSON
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            required: true
+        }
+    },
     contactInfo: { // Could be an email or phone number
         type: String,
     },
@@ -39,7 +51,7 @@ const StoreSchema = new mongoose.Schema({
     }
 });
 
-// Optional: Add index for geospatial queries if you plan to use them often
-// StoreSchema.index({ location: '2dsphere' }); // If storing lat/lon as a GeoJSON point
+// Add index for geospatial queries
+StoreSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Store', StoreSchema);

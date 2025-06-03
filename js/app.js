@@ -1,346 +1,409 @@
 // Global variables
-let allProducts = [];
-let allDeals = []; // To store fetched deals
+// let allProducts = []; // Removed, products.html now uses deals
+let allDeals = []; // To store fetched deals for the current page context (products or deals page)
+let currentLatitude = null; // For products.html location features
+let currentLongitude = null; // For products.html location features
+let leafletMap; // For Leaflet map on products.html
+let markerGroup; // For Leaflet markers
+
+// Map Constants
+const DEFAULT_LAT = -26.2041; // Johannesburg as a default
+const DEFAULT_LON = 28.0473;
+const DEFAULT_ZOOM = 10;
+
 
 // Import functions from deals.js and ui.js
-import { fetchDeals, getFilteredAndSortedDeals, getDealById } from './deals.js';
+import { fetchDeals } from './deals.js'; // getFilteredAndSortedDeals, getDealById removed from imports
 import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState } from './ui.js';
-import { populateModalWithDeal, openModal, initModal } from './modal.js';
+import { populateModalWithDeal, openModal, initModal } from './modal.js'; // Modal might still be used on products.html
 
 // DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we are on the products page by looking for the product-listing element
     if (document.getElementById('product-listing')) {
         initProductsPage();
-    } else if (document.getElementById('deals-container')) { // Check for deals page
+    } else if (document.getElementById('deals-container')) {
         initDealsPage();
     }
-    // Other page initializations can go here if needed in the future
-    // e.g., if (document.getElementById('home-specific-element')) initHomePage();
+    // Initialize modal for both pages if a common modal structure is used
+    initModal(id => allDeals.find(deal => deal._id === id)); // Pass a function to find deal in current allDeals
 });
 
 /**
- * Initializes functionality specific to the products page.
+ * Initializes functionality specific to the products page (consumer-facing deals).
  */
-function initProductsPage() {
-    fetchProductsAndRender().then(() => { // Ensure products are loaded before setting up listeners
-        const categoryFilter = document.getElementById('category-filter');
-        const farmerFilter = document.getElementById('farmer-filter');
-        const applyFiltersBtn = document.getElementById('apply-filters-btn');
-        const sortDropdown = document.getElementById('sort-dropdown');
+async function initProductsPage() {
+    console.log("Initializing products page (consumer deals)...");
 
-        if (categoryFilter && farmerFilter && applyFiltersBtn && sortDropdown) {
-            applyFiltersBtn.addEventListener('click', applyFiltersAndSort);
-            categoryFilter.addEventListener('change', applyFiltersAndSort);
-            farmerFilter.addEventListener('input', applyFiltersAndSort);
-            sortDropdown.addEventListener('change', applyFiltersAndSort);
-        } else {
-            console.error('Filter or sort elements not found on products.html');
+    // Initialize Leaflet Map
+    if (document.getElementById('map-view')) {
+        try {
+            leafletMap = L.map('map-view').setView([DEFAULT_LAT, DEFAULT_LON], DEFAULT_ZOOM);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(leafletMap);
+            markerGroup = L.layerGroup().addTo(leafletMap);
+            console.log("Leaflet map initialized.");
+        } catch (e) {
+            console.error("Leaflet map initialization failed:", e);
+            const mapViewDiv = document.getElementById('map-view');
+            if (mapViewDiv) {
+                mapViewDiv.innerHTML = '<p class="error-message">Sorry, the map could not be loaded.</p>';
+            }
         }
-    }).catch(error => {
-        // If fetchProductsAndRender fails, log it, product interactions won't work.
-        console.error("Failed to initialize products page due to fetch error:", error);
+    }
+
+
+    const categoryFilter = document.getElementById('category-filter');
+    const sortDropdown = document.getElementById('sort-dropdown');
+    const postcodeSearchInput = document.getElementById('postcode-search');
+    const postcodeSearchBtn = document.getElementById('postcode-search-btn');
+    const dealsNearMeBtn = document.getElementById('deals-near-me-btn');
+    // productListingContainer is passed to renderDeals directly
+
+    if (categoryFilter) categoryFilter.addEventListener('change', handleFilterOrSortChange);
+    if (sortDropdown) sortDropdown.addEventListener('change', handleFilterOrSortChange);
+    if (dealsNearMeBtn) dealsNearMeBtn.addEventListener('click', handleDealsNearMe);
+    if (postcodeSearchBtn) postcodeSearchBtn.addEventListener('click', handlePostcodeSearch);
+
+    // Initial fetch of deals
+    await handleFilterOrSortChange(); // This will also call updateMapMarkers
+
+    // Attach listeners for view deal buttons on product cards, if modal is used here
+    const productListingContainer = document.getElementById('product-listing');
+    if (productListingContainer) {
+        productListingContainer.addEventListener('click', event => {
+            const button = event.target.closest('.view-deal-btn');
+            if (button && button.dataset.dealId) {
+                event.preventDefault();
+                const dealId = button.dataset.dealId;
+                const deal = allDeals.find(d => d._id === dealId);
+                if (deal) {
+                    populateModalWithDeal(deal); // Pass the whole deal object
+                    openModal();
+                } else {
+                    showToast('Could not find deal details.', 'error');
+                }
+            }
+        });
+    }
+}
+
+
+/**
+ * Updates the Leaflet map with markers for the given deals.
+ * @param {Array<Object>} deals - An array of deal objects, each expected to have a .store property.
+ */
+function updateMapMarkers(deals) {
+    if (!leafletMap || !markerGroup) {
+        console.log("Map not initialized or no marker group, skipping marker update.");
+        return;
+    }
+
+    markerGroup.clearLayers();
+    const uniqueStores = new Map();
+
+    if (!deals || deals.length === 0) {
+        console.log("No deals to display on map.");
+        // Optionally reset map view if no deals
+        // leafletMap.setView([DEFAULT_LAT, DEFAULT_LON], DEFAULT_ZOOM);
+        return;
+    }
+
+    deals.forEach(deal => {
+        if (deal.store && deal.store._id && deal.store.location &&
+            deal.store.location.coordinates && deal.store.location.coordinates.length === 2) {
+            if (!uniqueStores.has(deal.store._id)) {
+                uniqueStores.set(deal.store._id, {
+                    _id: deal.store._id,
+                    storeName: deal.store.storeName || 'Unknown Store',
+                    address: deal.store.address || 'Address not available',
+                    coordinates: deal.store.location.coordinates // [longitude, latitude]
+                });
+            }
+        }
     });
+
+    if (uniqueStores.size === 0) {
+        console.log("No stores with valid locations found in deals.");
+        return;
+    }
+
+    uniqueStores.forEach(store => {
+        const [lon, lat] = store.coordinates; // Backend provides [lon, lat]
+        if (typeof lat === 'number' && typeof lon === 'number') {
+            const marker = L.marker([lat, lon]); // Leaflet expects [lat, lon]
+            marker.bindPopup(`<b>${store.storeName}</b><br>${store.address}`);
+            markerGroup.addLayer(marker);
+        } else {
+            console.warn("Invalid coordinates for store:", store.storeName, store.coordinates);
+        }
+    });
+
+    if (markerGroup.getLayers().length > 0) {
+        try {
+            leafletMap.fitBounds(markerGroup.getBounds().pad(0.1));
+        } catch (e) {
+            console.error("Error fitting map bounds:", e, markerGroup.getBounds());
+             // Fallback if fitBounds fails (e.g., single marker or invalid bounds)
+            if (markerGroup.getLayers().length === 1) {
+                const singleMarkerCoords = markerGroup.getLayers()[0].getLatLng();
+                leafletMap.setView(singleMarkerCoords, DEFAULT_ZOOM + 2); // Zoom in a bit more for single marker
+            } else {
+                // leafletMap.setView([DEFAULT_LAT, DEFAULT_LON], DEFAULT_ZOOM); // Reset to default
+            }
+        }
+    } else {
+        // Optional: if no markers ended up being added, reset view
+        // leafletMap.setView([DEFAULT_LAT, DEFAULT_LON], DEFAULT_ZOOM);
+    }
 }
 
 /**
- * Initializes functionality specific to the deals page.
+ * Handles fetching and rendering deals based on current filters and sort criteria for products.html.
+ */
+async function handleFilterOrSortChange() {
+    const productListingContainer = document.getElementById('product-listing');
+    if (!productListingContainer) {
+        console.error("Product listing container not found for handleFilterOrSortChange.");
+        return;
+    }
+    showSkeletonLoaders(productListingContainer);
+
+    const categoryFilter = document.getElementById('category-filter');
+    const sortDropdown = document.getElementById('sort-dropdown');
+
+    const queryParams = {};
+    if (categoryFilter && categoryFilter.value !== 'all') {
+        queryParams.category = categoryFilter.value;
+    }
+    if (sortDropdown) {
+        queryParams.sortBy = sortDropdown.value;
+    }
+
+    if (currentLatitude && currentLongitude) {
+        queryParams.latitude = currentLatitude;
+        queryParams.longitude = currentLongitude;
+        queryParams.radius = 10; // Default radius in km, could be made configurable
+    }
+
+    try {
+        console.log("Fetching deals with params:", queryParams);
+        const deals = await fetchDeals(queryParams);
+        allDeals = deals; // Store fetched deals globally for this page context
+        renderDeals(allDeals, productListingContainer); // Pass container
+        updateMapMarkers(allDeals); // Update map after rendering deals
+        if (deals.length === 0) {
+            // showNoDealsMessage handled by renderDeals if list is empty
+        }
+    } catch (error) {
+        console.error("Error in handleFilterOrSortChange:", error);
+        updateMapMarkers([]); // Clear map on error or show default state
+        showToast(error.message || 'Could not fetch deals. Please try again.', 'error');
+        if (productListingContainer) { // Ensure container exists
+             productListingContainer.innerHTML = `<p class="error-message">Could not load deals. ${error.message}</p>`;
+        }
+    }
+}
+
+/**
+ * Handles the "Use My Current Location" button click.
+ */
+async function handleDealsNearMe() {
+    const dealsNearMeBtn = document.getElementById('deals-near-me-btn');
+    if (!dealsNearMeBtn) return;
+
+    setButtonLoadingState(dealsNearMeBtn, true);
+
+    if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser.', 'error');
+        setButtonLoadingState(dealsNearMeBtn, false);
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            currentLatitude = position.coords.latitude;
+            currentLongitude = position.coords.longitude;
+            console.log(`Location obtained: Lat ${currentLatitude}, Lon ${currentLongitude}`);
+            showToast('Location obtained! Fetching nearest deals...', 'success');
+            document.getElementById('postcode-search').value = ''; // Clear postcode input
+            await handleFilterOrSortChange();
+            setButtonLoadingState(dealsNearMeBtn, false);
+        },
+        (error) => {
+            console.error("Error getting location:", error);
+            let message = 'Could not get location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message += "Please enable location services.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message += "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    message += "The request to get user location timed out.";
+                    break;
+                default:
+                    message += "An unknown error occurred.";
+                    break;
+            }
+            showToast(message, 'error');
+            currentLatitude = null; // Clear any old lat/lon
+            currentLongitude = null;
+            // Optionally, trigger a re-fetch without location if desired
+            // await handleFilterOrSortChange();
+            setButtonLoadingState(dealsNearMeBtn, false);
+        }
+    );
+}
+
+/**
+ * Handles the postcode search button click.
+ */
+async function handlePostcodeSearch() {
+    const postcodeSearchInput = document.getElementById('postcode-search');
+    const postcodeSearchBtn = document.getElementById('postcode-search-btn');
+    if (!postcodeSearchInput || !postcodeSearchBtn) return;
+
+    setButtonLoadingState(postcodeSearchBtn, true);
+    const postcode = postcodeSearchInput.value.trim();
+
+    if (!postcode) {
+        showToast('Please enter a postcode or "latitude,longitude".', 'error');
+        setButtonLoadingState(postcodeSearchBtn, false);
+        return;
+    }
+
+    // Simple regex to check for "lat,lon" format
+    const latLonRegex = /^(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
+    if (latLonRegex.test(postcode)) {
+        const [latStr, lonStr] = postcode.split(',');
+        currentLatitude = parseFloat(latStr);
+        currentLongitude = parseFloat(lonStr);
+
+        if (isNaN(currentLatitude) || isNaN(currentLongitude) || currentLatitude < -90 || currentLatitude > 90 || currentLongitude < -180 || currentLongitude > 180) {
+            showToast('Invalid latitude/longitude values. Latitude must be -90 to 90, Longitude -180 to 180.', 'error');
+            currentLatitude = null;
+            currentLongitude = null;
+            setButtonLoadingState(postcodeSearchBtn, false);
+            return;
+        }
+
+        console.log(`Using "lat,lon": Lat ${currentLatitude}, Lon ${currentLongitude}`);
+        showToast('Location set from input. Fetching deals...', 'success');
+        await handleFilterOrSortChange();
+    } else {
+        // Placeholder for actual geocoding API call
+        console.log("Geocoding for postcode not implemented. Input 'lat,lon' for testing.");
+        showToast("Postcode search is a demo. Please enter as 'latitude,longitude' (e.g., '51.50,-0.12').", 'info', 6000);
+        // currentLatitude = null; // Clear any old lat/lon to avoid using stale data if postcode search is "clearing" location
+        // currentLongitude = null;
+        // For now, don't clear lat/lon if postcode fails, let user explicitly use "near me" or valid "lat,lon"
+        // await handleFilterOrSortChange(); // Decide if a failed postcode search should refresh results without location
+    }
+    setButtonLoadingState(postcodeSearchBtn, false);
+}
+
+
+// --- DEALSPAGE SPECIFIC LOGIC (Kept from original for deals.html) ---
+/**
+ * Initializes functionality specific to the deals page (business-facing).
  */
 async function initDealsPage() {
-    console.log("Initializing deals page...");
-    initUI(filterAndRenderDeals, clearAllFiltersAndRender, handleViewDeal);
-    initModal(getDealById); // Initialize the modal system
+    console.log("Initializing deals page (business-facing)...");
+    // Pass the main container for deals.html
+    const dealsContainer = document.getElementById('deals-container');
+    initUI(
+        () => filterAndRenderDeals(dealsContainer),
+        () => clearAllFiltersAndRender(dealsContainer),
+        (dealId, buttonElement) => handleViewDeal(dealId, buttonElement, dealsContainer)
+    );
+    // initModal is called from DOMContentLoaded now, more general
+    // initModal(id => allDeals.find(deal => deal._id === id));
 
-    // Initial load of deals
-    await filterAndRenderDeals();
+    await filterAndRenderDeals(dealsContainer);
 }
 
-/**
- * Fetches, filters, sorts, and renders deals based on current UI selections.
- */
-async function filterAndRenderDeals() {
-    console.log("filterAndRenderDeals called");
-    showSkeletonLoaders(); // Show placeholders while loading
+async function filterAndRenderDeals(dealsContainer) { // Added dealsContainer param
+    console.log("filterAndRenderDeals (deals.html) called");
+    if (!dealsContainer) {
+        console.error("Deals container not found for filterAndRenderDeals (deals.html)");
+        return;
+    }
+    showSkeletonLoaders(dealsContainer);
 
-    const { searchTerm, category, sortBy } = getFilterValues();
-    updateCategoryFilterVisuals(category); // Update visual cue for category filter
+    const { searchTerm, category, sortBy } = getFilterValues(); // These use specific IDs from deals.html via ui.js
+    updateCategoryFilterVisuals(category);
 
     try {
-        // Fetch all deals if not already fetched or if a refresh is needed.
-        // For now, let's assume deals.js handles caching or always fetches.
-        // If allDeals is empty, it implies it's the first fetch or a cache miss.
+        // For deals.html, we might still use a static JSON or a different API endpoint.
+        // For consistency with products.html, let's assume it also uses /api/deals
+        // but with different default parameters or context if needed.
+        // For now, let's use a simple query or fetch all if no specific params.
+        const queryParams = { searchTerm, category, sortBy };
+        // If deals.html should show ALL deals by default without specific filters from its UI, adjust queryParams.
+        // For example, remove searchTerm if it's not part of deals.html UI for fetching.
+        // The current getFilterValues in ui.js assumes searchInput, categoryFilter, sortDealsSelect exist.
+
+        const deals = await fetchDeals(queryParams); // Using the new fetchDeals
+        allDeals = deals; // Store for this page context
+
+        // renderDeals now takes container, searchTerm, category for its noDealsMessage
+        renderDeals(allDeals, dealsContainer, searchTerm, category);
+
         if (allDeals.length === 0) {
-            allDeals = await fetchDeals('data/deals.json'); // Path to your deals data
-        }
-
-        const dealsToDisplay = getFilteredAndSortedDeals(searchTerm, category, sortBy);
-        renderDeals(dealsToDisplay, searchTerm, category);
-
-        if (dealsToDisplay.length === 0) {
-            // showNoDealsMessage(searchTerm, category); // showToast can be used or this can be kept
-            if (searchTerm || category !== 'all') {
-                showToast('No deals match your current filters.', 'error', 5000);
-            } else {
-                // showToast('No deals available at the moment. Check back soon!', 'success', 5000); // Or keep showNoDealsMessage
-            }
-            // Retain showNoDealsMessage for richer HTML content if preferred over simple toast for this specific case
-            showNoDealsMessage(searchTerm, category);
+            // showNoDealsMessage is handled by renderDeals
         }
     } catch (error) {
-        console.error("Error fetching or rendering deals:", error);
+        console.error("Error fetching or rendering deals (deals.html):", error);
         showToast('Could not load deals. Please try again later.', 'error');
-        const dealsContainer = document.getElementById('deals-container');
         if (dealsContainer) {
-            // Keep the more descriptive message in the container as well, or rely solely on toast
-            dealsContainer.innerHTML = '<p class="error-message">Could not load deals. Please try refreshing the page or check back soon.</p>';
+            dealsContainer.innerHTML = '<p class="error-message">Could not load deals. Please try refreshing the page.</p>';
         }
     }
 }
 
-/**
- * Clears all filter inputs and re-renders the deals.
- */
-async function clearAllFiltersAndRender() {
-    console.log("clearAllFiltersAndRender called");
+async function clearAllFiltersAndRender(dealsContainer) { // Added dealsContainer param
+    console.log("clearAllFiltersAndRender (deals.html) called");
     const clearBtn = document.getElementById('clearFiltersBtn');
-    if (clearBtn) {
-        setButtonLoadingState(clearBtn, true);
-    }
+    if (clearBtn) setButtonLoadingState(clearBtn, true);
 
-    // Reset UI filter elements using setFilterValues from ui.js
     setFilterValues({ searchTerm: '', category: 'all', sortBy: 'default' });
-
-    // Potentially clear any stored preferences if implemented
-    // localStorage.removeItem('dealFilters');
-
-    updateCategoryFilterVisuals('all'); // Reset category filter visual cue
+    updateCategoryFilterVisuals('all');
 
     try {
-        await filterAndRenderDeals(); // Re-fetch and render with cleared filters
+        await filterAndRenderDeals(dealsContainer);
     } finally {
-        if (clearBtn) {
-            // Optional: small delay if the operation is too fast
-            setTimeout(() => setButtonLoadingState(clearBtn, false), 200);
-        }
+        if (clearBtn) setTimeout(() => setButtonLoadingState(clearBtn, false), 200);
     }
 }
 
-/**
- * Handles the action when a user wants to view details of a specific deal.
- * @param {string} dealId - The ID of the deal to view.
- * @param {HTMLButtonElement} buttonElement - The button element that was clicked.
- */
-async function handleViewDeal(dealId, buttonElement) {
-    console.log(`handleViewDeal called for deal ID: ${dealId}, button:`, buttonElement);
-    if (buttonElement) {
-        setButtonLoadingState(buttonElement, true);
-    }
+async function handleViewDeal(dealId, buttonElement, dealsContainer) { // Added dealsContainer param
+    console.log(`handleViewDeal (deals.html) called for deal ID: ${dealId}`);
+    if (buttonElement) setButtonLoadingState(buttonElement, true);
 
     try {
-        // Ensure deals are loaded before trying to get one by ID
-        if (allDeals.length === 0) {
-           allDeals = await fetchDeals('data/deals.json');
-        }
-        // Simulate a short delay to ensure spinner is visible
-        await new Promise(resolve => setTimeout(resolve, 150));
-
-        const deal = getDealById(dealId); // We still need the deal object for the 'if (deal)' check
-        if (deal) { // Check if the deal object exists
-            populateModalWithDeal(dealId); // <--- CHANGE THIS LINE to pass dealId
+        // No need to re-fetch allDeals if it's populated by filterAndRenderDeals
+        const deal = allDeals.find(d => d._id === dealId);
+        if (deal) {
+            populateModalWithDeal(deal); // Pass the whole deal object
             openModal();
         } else {
-            console.warn(`Deal with ID ${dealId} not found.`);
-            showToast(`Deal with ID ${dealId} not found.`, 'error');
+            console.warn(`Deal with ID ${dealId} not found in current list (deals.html).`);
+            showToast(`Deal details not found. It might have been updated.`, 'error');
+            // Optional: refresh list if deal not found
+            // await filterAndRenderDeals(dealsContainer);
         }
     } catch (error) {
-        console.error("Error handling view deal:", error);
+        console.error("Error handling view deal (deals.html):", error);
         showToast("An error occurred while trying to view the deal details.", 'error');
     } finally {
-        if (buttonElement) {
-            setButtonLoadingState(buttonElement, false);
-        }
+        if (buttonElement) setButtonLoadingState(buttonElement, false);
     }
 }
 
-/**
- * Applies current filter and sort values to the product list and re-renders it.
- */
-function applyFiltersAndSort() {
-    const applyFiltersBtn = document.getElementById('apply-filters-btn');
-    if (applyFiltersBtn) {
-        setButtonLoadingState(applyFiltersBtn, true);
-    }
-
-    const categoryValue = document.getElementById('category-filter').value;
-    const farmerValue = document.getElementById('farmer-filter').value.trim().toLowerCase();
-    const productListingContainer = document.getElementById('product-listing');
-
-    if (!productListingContainer) {
-        console.error("Product listing container not found for filtering/sorting.");
-        if (applyFiltersBtn) setButtonLoadingState(applyFiltersBtn, false); // Reset button if container not found
-        return;
-    }
-
-    let filteredProducts = [...allProducts];
-
-    // Apply filters
-    if (categoryValue !== "all") {
-        filteredProducts = filteredProducts.filter(product => product.category === categoryValue);
-    }
-    if (farmerValue) {
-        filteredProducts = filteredProducts.filter(product =>
-            product.farmer.toLowerCase().includes(farmerValue)
-        );
-    }
-
-    // Apply sort
-    const sortedAndFilteredProducts = applySort(filteredProducts);
-
-    renderProducts(sortedAndFilteredProducts, productListingContainer);
-
-    if (applyFiltersBtn) {
-        // Brief delay to ensure user sees the loading state
-        setTimeout(() => setButtonLoadingState(applyFiltersBtn, false), 200);
-    }
-}
-
-/**
- * Sorts an array of product objects based on the selected sort criteria.
- * @param {Array<Object>} productsToSort - The array of products to sort.
- * @returns {Array<Object>} A new array with the sorted products.
- */
-function applySort(productsToSort) {
-    const sortValue = document.getElementById('sort-dropdown').value;
-    let sortedProducts = [...productsToSort]; // Work on a copy
-
-    switch (sortValue) {
-        case 'name-asc':
-            sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-            break;
-        case 'name-desc':
-            sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
-            break;
-        case 'price-asc':
-            sortedProducts.sort((a, b) => a.price - b.price);
-            break;
-        case 'price-desc':
-            sortedProducts.sort((a, b) => b.price - a.price);
-            break;
-    }
-    return sortedProducts;
-}
-
-
-/**
- * Fetches product data from JSON and renders them on the page.
- * @returns {Promise} A promise that resolves when products are fetched and rendered, or rejects on error.
- */
-async function fetchProductsAndRender() {
-    const productListingContainer = document.getElementById('product-listing');
-
-    if (!productListingContainer) {
-        console.error("Product listing container not found on this page.");
-        return Promise.reject("Product listing container not found");
-    }
-
-    try {
-        const response = await fetch('data/products.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const products = await response.json();
-        allProducts = products; // Store globally for filtering/sorting
-        // Initial render with default sort (order from JSON)
-        // Or, if a default sort is desired on load, call applyFiltersAndSort() here instead of just renderProducts
-        renderProducts(allProducts, productListingContainer);
-        return Promise.resolve(); // Resolve the promise upon success
-    } catch (error) {
-        console.error("Error fetching or parsing products:", error);
-        showToast('Error loading products. Please try again later.', 'error');
-        productListingContainer.innerHTML = '<p>Error loading products. Please try again later.</p>'; // Keep this as a fallback in-page message
-        return Promise.reject(error); // Reject the promise on error
-    }
-}
-
-/**
- * Renders an array of product objects into the given container element.
- * @param {Array<Object>} productsToRender - The array of product objects to render.
- * @param {HTMLElement} containerElement - The HTML element to render the products into.
- */
-function renderProducts(productsToRender, containerElement) {
-    containerElement.innerHTML = ''; // Clear existing content
-
-    if (!productsToRender || productsToRender.length === 0) {
-        containerElement.innerHTML = '<p>No products found matching your criteria.</p>';
-        return;
-    }
-
-    productsToRender.forEach(product => {
-        const card = document.createElement('div');
-        card.classList.add('deal-card');
-        // card.classList.add('product-page-card');
-
-        // Image container and image
-        const imageContainer = document.createElement('div');
-        imageContainer.classList.add('deal-card-image-container');
-        const image = document.createElement('img');
-        image.src = product.imageUrl || 'images/placeholders/default.svg';
-        image.alt = product.name;
-        image.loading = 'lazy'; // Added loading lazy
-        image.onerror = function() { this.onerror=null; this.src='images/placeholders/default.svg'; this.alt='Placeholder image'; }; // Added onerror
-        imageContainer.appendChild(image);
-
-        // Content container
-        const contentContainer = document.createElement('div');
-        contentContainer.classList.add('deal-card-content');
-
-        const nameHeading = document.createElement('h3');
-        nameHeading.textContent = product.name;
-
-        // Price container and price (mimicking deal card structure)
-        const priceContainer = document.createElement('div');
-        priceContainer.classList.add('price-container');
-        const priceSpan = document.createElement('span');
-        priceSpan.classList.add('price');
-        priceSpan.textContent = `R${parseFloat(product.price).toFixed(2)}`; // Changed $ to R
-        priceContainer.appendChild(priceSpan);
-        // Products don't have originalPrice in the provided data structure, so we omit it
-
-        // Farmer (displayed like business-name)
-        const farmerPara = document.createElement('p');
-        farmerPara.classList.add('business-name'); // Use 'business-name' class for similar styling
-        farmerPara.title = product.farmer; // Tooltip for full name if needed
-        farmerPara.innerHTML = `<i class="fas fa-store-alt" aria-hidden="true"></i> ${product.farmer}`;
-
-        // Category (displayed with an icon, using a new class for styling)
-        const categoryPara = document.createElement('p');
-        categoryPara.classList.add('product-category-display'); // New class for specific styling
-        categoryPara.innerHTML = `<i class="fas fa-tag" aria-hidden="true"></i> Category: ${product.category}`;
-
-        const descriptionPara = document.createElement('p');
-        descriptionPara.classList.add('description');
-        descriptionPara.textContent = product.description;
-
-        // View Product Button (mimicking view-deal-btn)
-        const viewProductBtn = document.createElement('button');
-        viewProductBtn.classList.add('view-deal-btn'); // Use same class for styling
-        viewProductBtn.textContent = 'View Product';
-        // Optional: Add dataset for product ID and aria-label if it were functional
-        // viewProductBtn.dataset.productId = product.id;
-        // viewProductBtn.setAttribute('aria-label', `View details for ${product.name}`);
-
-        // Assemble content
-        contentContainer.appendChild(nameHeading);
-        contentContainer.appendChild(priceContainer);
-        contentContainer.appendChild(farmerPara); // Changed from generic p to styled farmerPara
-        contentContainer.appendChild(categoryPara); // Changed from generic p to styled categoryPara
-        contentContainer.appendChild(descriptionPara);
-        contentContainer.appendChild(viewProductBtn); // Added button
-
-        // Assemble card
-        card.appendChild(imageContainer);
-        card.appendChild(contentContainer);
-
-        containerElement.appendChild(card);
-    });
-}
+// Old product-specific functions are removed as products.html now uses the deal discovery flow.
+// function fetchProductsAndRender() { ... }
+// function applyFiltersAndSort() { ... }
+// function applySort(productsToSort) { ... }
+// function renderProducts(productsToRender, containerElement) { ... }

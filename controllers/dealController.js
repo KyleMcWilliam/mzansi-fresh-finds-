@@ -42,36 +42,215 @@ exports.createDeal = async (req, res) => {
     }
 };
 
-// @desc    Get all deals (with optional filtering)
+const mongoose = require('mongoose'); // For mongoose.Types.ObjectId
+
+// Helper function for distance calculation (Haversine formula)
+function getDistanceInKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
+
+// @desc    Get all deals (with optional filtering, including location, using aggregation)
 // @route   GET /api/deals
 // @access  Public
 exports.getDeals = async (req, res) => {
     try {
-        // Basic filtering examples (can be expanded)
-        const { category, storeId, minPrice, maxPrice, active } = req.query;
-        const query = {};
+        const { category, storeId, minPrice, maxPrice, active, latitude, longitude, radius, sortBy } = req.query;
 
-        if (category) query.category = category;
-        if (storeId) query.store = storeId; // Assuming storeId is passed as a query param
-        if (active) query.isActive = active === 'true'; else query.isActive = true; // Default to active deals
+        let userLat, userLon;
+        const pipeline = [];
+        const matchQuery = {};
 
-        if (minPrice || maxPrice) {
-            query.discountedPrice = {};
-            if (minPrice) query.discountedPrice.$gte = parseFloat(minPrice);
-            if (maxPrice) query.discountedPrice.$lte = parseFloat(maxPrice);
+        // Default to active deals and quantity available
+        matchQuery.isActive = active === 'false' ? false : true;
+        matchQuery.quantityAvailable = { $gt: 0 };
+
+        // Location-based filtering (determines which stores to consider)
+        if (latitude && longitude) {
+            userLat = parseFloat(latitude);
+            userLon = parseFloat(longitude);
+            const radiusInKm = parseFloat(radius) || 10; // Default radius 10km
+
+            if (isNaN(userLat) || isNaN(userLon)) {
+                return res.status(400).json({ success: false, error: 'Invalid latitude or longitude provided.' });
+            }
+
+            const radiusInRadians = radiusInKm / 6378.1; // Earth's radius in km
+
+            // Find stores within vicinity - Fetch their locations for later JS calculation if needed
+            const storesInVicinity = await Store.find({
+                location: {
+                    $geoWithin: {
+                        $centerSphere: [[userLon, userLat], radiusInRadians]
+                    }
+                }
+            }).select('_id location'); // Select ID and location
+
+            const storeIdsInVicinity = storesInVicinity.map(s => s._id);
+
+            if (storeIdsInVicinity.length === 0) {
+                return res.status(200).json({ success: true, count: 0, data: [] });
+            }
+
+            if (storeId) { // If specific storeId is also provided
+                if (!storeIdsInVicinity.some(id => id.equals(storeId))) {
+                    return res.status(200).json({ success: true, count: 0, data: [] });
+                }
+                matchQuery.store = mongoose.Types.ObjectId(storeId);
+            } else {
+                matchQuery.store = { $in: storeIdsInVicinity };
+            }
+
+        } else if (storeId) {
+            matchQuery.store = mongoose.Types.ObjectId(storeId);
+        } else if (latitude || longitude) { // Only one of lat/lon provided
+            return res.status(400).json({ success: false, error: 'Both latitude and longitude are required for location filtering.' });
         }
 
-        // Only show deals where quantity is greater than 0
-        query.quantityAvailable = { $gt: 0 };
+        // Add other filters to matchQuery
+        if (category) matchQuery.category = category;
+        if (minPrice || maxPrice) {
+            matchQuery.discountedPrice = {};
+            if (minPrice) matchQuery.discountedPrice.$gte = parseFloat(minPrice);
+            if (maxPrice) matchQuery.discountedPrice.$lte = parseFloat(maxPrice);
+        }
 
+        // Initial $match stage
+        pipeline.push({ $match: matchQuery });
 
-        const deals = await Deal.find(query)
-                                .populate('store', 'storeName address') // Populate store details
-                                .populate('user', 'name'); // Populate user who created deal
+        // $lookup for Store
+        pipeline.push({
+            $lookup: {
+                from: 'stores', // The actual collection name for Stores
+                localField: 'store',
+                foreignField: '_id',
+                as: 'storeInfo'
+            }
+        });
+        pipeline.push({ $unwind: '$storeInfo' }); // Each deal has one store
+
+        // $lookup for User (creator of the deal)
+        pipeline.push({
+            $lookup: {
+                from: 'users', // The actual collection name for Users
+                localField: 'user',
+                foreignField: '_id',
+                as: 'userInfo'
+            }
+        });
+        pipeline.push({ $unwind: '$userInfo' }); // Each deal has one user
+
+        // $addFields for discountPercentage
+        pipeline.push({
+            $addFields: {
+                discountPercentage: {
+                    $cond: {
+                        if: { $gt: ['$originalPrice', 0] },
+                        then: {
+                            $multiply: [
+                                { $divide: [{ $subtract: ['$originalPrice', '$discountedPrice'] }, '$originalPrice'] },
+                                100
+                            ]
+                        },
+                        else: 0
+                    }
+                }
+            }
+        });
+
+        // Sorting stage (excluding 'distance' for now, handled in JS if specified)
+        const sortStage = {};
+        if (sortBy && sortBy !== 'distance') {
+            if (sortBy === 'newest') sortStage.createdAt = -1;
+            else if (sortBy === 'expiry') sortStage.bestBeforeDate = 1;
+            else if (sortBy === 'discount') sortStage.discountPercentage = -1;
+            else if (sortBy === 'priceAsc') sortStage.discountedPrice = 1;
+            else if (sortBy === 'priceDesc') sortStage.discountedPrice = -1;
+            else sortStage.createdAt = -1; // Default sort
+        } else if (!sortBy) {
+            sortStage.createdAt = -1; // Default sort if sortBy is not provided
+        }
+        if (Object.keys(sortStage).length > 0) {
+            pipeline.push({ $sort: sortStage });
+        }
+
+        // $project to shape the output
+        pipeline.push({
+            $project: {
+                // Deal fields (include all relevant ones)
+                _id: 1,
+                itemName: 1,
+                description: 1,
+                category: 1,
+                originalPrice: 1,
+                discountedPrice: 1,
+                quantityAvailable: 1,
+                bestBeforeDate: 1,
+                pickupInstructions: 1,
+                imageURL: 1,
+                isActive: 1,
+                createdAt: 1,
+                // Calculated field
+                discountPercentage: 1,
+                // Populated-like fields
+                store: { // Renaming storeInfo to store for consistency
+                    _id: '$storeInfo._id',
+                    storeName: '$storeInfo.storeName',
+                    address: '$storeInfo.address',
+                    location: '$storeInfo.location', // Crucial for JS distance calculation
+                    contactInfo: '$storeInfo.contactInfo',
+                    openingHours: '$storeInfo.openingHours',
+                    logoURL: '$storeInfo.logoURL'
+                },
+                user: { // Renaming userInfo to user
+                    _id: '$userInfo._id',
+                    name: '$userInfo.name'
+                    // Add other user fields if needed, e.g., email, but be mindful of privacy
+                }
+            }
+        });
+
+        let deals = await Deal.aggregate(pipeline);
+
+        // Post-aggregation: Calculate distance and sort if sortBy is 'distance'
+        if (latitude && longitude && deals.length > 0) {
+            deals.forEach(deal => {
+                if (deal.store && deal.store.location && deal.store.location.coordinates) {
+                    const storeCoords = deal.store.location.coordinates; // [lon, lat]
+                    deal.distanceInKm = parseFloat(getDistanceInKm(userLat, userLon, storeCoords[1], storeCoords[0]).toFixed(2));
+                } else {
+                    deal.distanceInKm = null; // Or some indicator that distance couldn't be calculated
+                }
+            });
+
+            if (sortBy === 'distance') {
+                deals.sort((a, b) => {
+                    if (a.distanceInKm === null) return 1; // Push nulls to the end
+                    if (b.distanceInKm === null) return -1;
+                    return a.distanceInKm - b.distanceInKm;
+                });
+            }
+        }
 
         res.status(200).json({ success: true, count: deals.length, data: deals });
+
     } catch (error) {
-        console.error(error);
+        console.error('Error in getDeals (aggregation):', error);
+        if (error.name === 'CastError') { // e.g. for storeId
+            return res.status(400).json({ success: false, error: `Invalid parameter format: ${error.message}` });
+        }
         res.status(500).json({ success: false, error: 'Server Error' });
     }
 };

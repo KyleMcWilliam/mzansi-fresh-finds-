@@ -10,12 +10,15 @@ function isPage(pageName) {
 // --- Global Listings Array ---
 // Exported for testing purposes, in a real app, this might be managed by a more robust state solution.
 export let currentListings = [];
+let currentAuthenticatedUser = null;
+let currentUserStore = null;
+let editingDealId = null;
 
 // --- DOM Element References (initialized in initBusinessPortal) ---
 let addNewListingBtn, listingModal, listingForm, closeModalElements, listingsContainer, noListingsMessage, loginForm, signupForm;
 
 // --- Main Initialization Function ---
-export function initBusinessPortal() {
+export async function initBusinessPortal() { // Made async
     console.log("Business Portal script initializing...");
 
     if (isPage('business-login.html')) {
@@ -37,10 +40,73 @@ export function initBusinessPortal() {
     }
 
     // Dashboard specific initializations
-    if (isPage('business-dashboard.html') || document.getElementById('business-listings-container')) { // Check for a key dashboard element
-        console.log("Initializing dashboard elements for business-dashboard.html");
-        // --- Initialize DOM Element References ---
-        addNewListingBtn = document.getElementById('addNewListingBtn');
+    if (isPage('business-dashboard.html')) { // More specific check for dashboard page security
+        const token = getAuthToken();
+        if (!token) {
+            console.log("No auth token found, redirecting to login.");
+            window.location.href = 'business-login.html';
+            return; // Stop further execution for dashboard
+        }
+
+        try {
+            const response = await fetch('/api/auth/user', {
+                method: 'GET',
+                headers: {
+                    'x-auth-token': token,
+                },
+            });
+
+            if (response.ok) {
+                currentAuthenticatedUser = await response.json();
+                console.log("Authenticated user:", currentAuthenticatedUser);
+
+                // Fetch the user's store
+                if (currentAuthenticatedUser && currentAuthenticatedUser._id) {
+                    await fetchUserStore(currentAuthenticatedUser._id);
+                } else {
+                    console.error("User ID not available to fetch store.");
+                    showToast("Could not identify user to fetch store details.", "error");
+                    logoutUser(); // Or handle as appropriate
+                    return;
+                }
+
+                // Proceed with dashboard initialization only if user is authenticated and store is (or isn't) found
+                initializeDashboardElements();
+                loadUserDeals(); // Renamed from loadInitialListings
+            } else {
+                // Handle 401 (invalid/expired token) or other errors
+                const errorData = await response.json();
+                console.error("Failed to fetch user data:", errorData.message || response.status);
+                showToast(errorData.message || "Session expired. Please login again.", 'error');
+                logoutUser(); // This will clear token and redirect to login
+                return; // Stop further execution
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            showToast("An error occurred while verifying your session. Please login again.", 'error');
+            logoutUser(); // Redirect to login
+            return; // Stop further execution
+        }
+
+    } else if (document.getElementById('business-listings-container')) {
+        // This condition might be for a shared component that doesn't require full dashboard auth
+        // or if the dashboard check above failed and we fell through.
+        // For now, let's assume if it's not business-dashboard.html specifically,
+        // but has listings container, it might be a less secure view or part of another page.
+        // If strict security is needed here too, this logic needs adjustment.
+        console.log("Initializing dashboard-like elements (listings container found).");
+        // Consider if auth is needed here too. For now, proceeding with element init.
+        initializeDashboardElements(); // Initialize common dashboard elements
+        loadUserDeals(); // Renamed from loadInitialListings
+    }
+}
+
+// Helper function to initialize dashboard specific DOM elements and event listeners
+function initializeDashboardElements() {
+    console.log("Initializing dashboard DOM elements and event listeners...");
+    // --- Initialize DOM Element References ---
+    addNewListingBtn = document.getElementById('addNewListingBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         listingModal = document.getElementById('listingModal');
         listingForm = document.getElementById('listingForm');
         // Ensure modal exists before querying its children
@@ -52,72 +118,181 @@ export function initBusinessPortal() {
         listingsContainer = document.getElementById('business-listings-container');
         noListingsMessage = document.getElementById('no-listings-message');
 
-        // --- Attach Event Listeners ---
-        if (addNewListingBtn) {
-            addNewListingBtn.addEventListener('click', openModal);
-        }
+    // --- Attach Event Listeners ---
+    if (addNewListingBtn) {
+        addNewListingBtn.addEventListener('click', openModal);
+    }
 
-        closeModalElements.forEach(elem => {
-            elem.addEventListener('click', () => {
+    const logoutBtn = document.getElementById('logoutBtn'); // Moved here
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logoutUser);
+    }
+
+    closeModalElements.forEach(elem => {
+        elem.addEventListener('click', () => {
+            closeModal();
+        });
+    });
+
+    if (listingModal) {
+        listingModal.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
                 closeModal();
-            });
+            }
+        });
+    }
+
+    if (listingForm) {
+        listingForm.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Event delegation for edit buttons
+    if (listingsContainer) {
+        listingsContainer.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('button-edit')) {
+                const dealId = event.target.dataset.id;
+                if (dealId) {
+                    await handleEditDealClick(dealId);
+                } else {
+                    console.error("Edit button clicked but no deal ID found.");
+                    showToast("Could not identify the deal to edit.", "error");
+                }
+            } else if (event.target.classList.contains('button-delete')) {
+                const dealId = event.target.dataset.id;
+                if (dealId) {
+                    await handleDeleteDealClick(dealId);
+                } else {
+                    console.error("Delete button clicked but no deal ID found.");
+                    showToast("Could not identify the deal to delete.", "error");
+                }
+            }
+        });
+    }
+
+    // --- Initial Data Load (handled after auth check for dashboard) ---
+    // Remove static HTML placeholders before the first render if JS is enabled
+    const staticPlaceholders = listingsContainer?.querySelectorAll('.listing-item.static-placeholder');
+    staticPlaceholders?.forEach(ph => ph.remove());
+    // loadUserDeals(); // This is now called after successful auth in initBusinessPortal
+}
+
+// --- Function to Fetch User's Store ---
+async function fetchUserStore(userId) {
+    const token = getAuthToken();
+    if (!token) {
+        console.error("No token available for fetching store.");
+        // This case should ideally be handled by the main auth check,
+        // but as a safeguard:
+        showToast("Authentication token missing, cannot fetch store.", "error");
+        return null;
+    }
+
+    try {
+        const response = await fetch('/api/stores', {
+            method: 'GET',
+            headers: {
+                'x-auth-token': token, // Good practice, even if endpoint is public for now
+            },
         });
 
-        if (listingModal) {
-            listingModal.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
-                    closeModal();
-                }
-            });
+        if (response.ok) {
+            const stores = await response.json();
+            const foundStore = stores.find(store => store.user && store.user._id === userId);
+
+            if (foundStore) {
+                currentUserStore = foundStore;
+                console.log("User's store found and assigned:", currentUserStore);
+            } else {
+                currentUserStore = null;
+                console.log("No store found for the current user.");
+                // It's not necessarily an error if a user doesn't have a store yet.
+                // Depending on app logic, you might prompt them to create one.
+                // showToast("You do not have a store registered yet. Please create one.", "info");
+            }
+            return currentUserStore;
+        } else {
+            const errorData = await response.json();
+            console.error("Failed to fetch stores:", errorData.message || response.status);
+            showToast(errorData.message || "Failed to load store information.", 'error');
+            currentUserStore = null;
+            return null;
         }
-
-        if (listingForm) {
-            listingForm.addEventListener('submit', handleFormSubmit);
-        }
-
-        // --- Initial Data Load ---
-        // Remove static HTML placeholders before the first render if JS is enabled
-        const staticPlaceholders = listingsContainer?.querySelectorAll('.listing-item.static-placeholder');
-        staticPlaceholders?.forEach(ph => ph.remove());
-
-        loadInitialListings(); // Load and render data from JSON
+    } catch (error) {
+        console.error("Error during fetchUserStore:", error);
+        showToast("An unexpected error occurred while fetching store details.", 'error');
+        currentUserStore = null;
+        return null;
     }
 }
 
-// --- Function to Fetch Initial Listings (Dashboard Specific) ---
-async function loadInitialListings() {
-    // Ensure this only runs if listingsContainer is present
+
+// --- Function to Fetch User's Deals (Dashboard Specific) ---
+async function loadUserDeals() {
     if (!listingsContainer) {
-        console.log("Listings container not found, skipping initial listings load.");
+        console.log("Listings container not found, skipping user deals load.");
         return;
     }
-    try {
-        const response = await fetch('data/business-listings.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const listings = await response.json();
-            // currentListings = listings; // Populate the global array - Modified for testability
-            setCurrentListings(listings); // Use setter for testability
-            renderListings(currentListings);
-        } catch (error) {
-            console.error("Could not load initial listings:", error);
-            if (listingsContainer) { // Check again, as it might be null if called on wrong page
-                listingsContainer.innerHTML = `<p class="error-message">Sorry, we couldn't load the listings at the moment. Please try again later.</p>`;
-            }
-            if (noListingsMessage) noListingsMessage.style.display = 'block'; // Check again
-        }
+
+    if (!currentUserStore || !currentUserStore._id) {
+        console.log("Current user store not available. Cannot fetch deals.");
+        listingsContainer.innerHTML = `<p class="info-message">Please register or complete your store profile to manage deals.</p>`;
+        if (noListingsMessage) noListingsMessage.style.display = 'none'; // Hide "no listings" if showing this message
+        return;
     }
 
+    const token = getAuthToken();
+    if (!token) {
+        showToast("Authentication required to view deals. Please login.", "error");
+        logoutUser(); // Redirect to login
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/deals?storeId=${currentUserStore._id}`, {
+            method: 'GET',
+            headers: {
+                'x-auth-token': token,
+            },
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                // currentListings = result.data; // Decide if currentListings global is still needed
+                renderListings(result.data); // Pass deals data directly to renderListings
+            } else {
+                // This case might not happen if backend always returns success:true with empty array on no deals
+                console.error("Failed to fetch deals, API success flag was false:", result.message);
+                listingsContainer.innerHTML = `<p class="error-message">Could not load your deals: ${result.message || 'Unknown error'}</p>`;
+                if (noListingsMessage) noListingsMessage.style.display = 'none';
+            }
+        } else {
+            const errorData = await response.json();
+            console.error(`Failed to fetch deals (HTTP ${response.status}):`, errorData.message || 'Server error');
+            listingsContainer.innerHTML = `<p class="error-message">Could not load your deals. Status: ${response.status}</p>`;
+            if (noListingsMessage) noListingsMessage.style.display = 'none';
+            showToast(errorData.message || `Failed to fetch deals. Server responded with ${response.status}.`, 'error');
+        }
+    } catch (error) {
+        console.error("Error loading user deals:", error);
+        listingsContainer.innerHTML = `<p class="error-message">An unexpected error occurred while loading your deals.</p>`;
+        if (noListingsMessage) noListingsMessage.style.display = 'none';
+        showToast("An error occurred while loading deals.", 'error');
+    }
+}
+
 // --- Login Form Handling ---
-export function handleLoginFormSubmit(event) {
+export async function handleLoginFormSubmit(event) {
     event.preventDefault();
     clearAllErrors(loginForm); // Clear previous errors
+
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const loginButton = loginForm.querySelector('button[type="submit"]');
 
     let isValid = true;
 
     // Validate Login Email
-    const emailInput = document.getElementById('login-email');
     if (emailInput && !isNotEmpty(emailInput.value)) {
         displayError(emailInput, 'Email is required.');
         isValid = false;
@@ -126,54 +301,86 @@ export function handleLoginFormSubmit(event) {
         isValid = false;
     } else if (!emailInput) {
         console.warn('Login email input not found');
+        showToast('Login email input not found in the form.', 'error');
         isValid = false;
     }
 
     // Validate Login Password
-    const passwordInput = document.getElementById('login-password');
     if (passwordInput && !isNotEmpty(passwordInput.value)) {
         displayError(passwordInput, 'Password is required.');
         isValid = false;
     } else if (!passwordInput) {
         console.warn('Login password input not found');
+        showToast('Login password input not found in the form.', 'error');
         isValid = false;
     }
 
     if (isValid) {
-        // Display mock success message
-        const formContainer = loginForm.closest('.form-container');
-        if (formContainer) {
-            formContainer.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Login successful! Redirecting...</p>';
-        } else {
-            loginForm.innerHTML = '<p class="success-message" style="color: green;">Login successful! Redirecting...</p>';
+        if (loginButton) setButtonLoadingState(loginButton, true, 'Logging in...');
+
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) { // Typically 200-299 status codes
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token);
+                    showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'business-dashboard.html';
+                    }, 1000); // Redirect after 1 second
+                } else {
+                    console.error('Login successful, but no token received:', data);
+                    showToast(data.message || 'Login successful, but no token received. Please try again.', 'error');
+                }
+            } else {
+                // Handle 400, 401, 500 errors
+                console.error('Login failed:', data);
+                showToast(data.message || 'Login failed. Please check your credentials or try again later.', 'error');
+            }
+        } catch (error) {
+            console.error('Error during login fetch:', error);
+            showToast('An unexpected error occurred during login. Please try again.', 'error');
+        } finally {
+            if (loginButton) setButtonLoadingState(loginButton, false, 'Login');
         }
-        // In a real app, you'd proceed with actual login logic here.
-        // For placeholder, redirect after a short delay
-        setTimeout(() => {
-            window.location.href = 'business-dashboard.html';
-        }, 1500);
     }
 }
 
 // --- Signup Form Handling ---
-export function handleSignupFormSubmit(event) {
+export async function handleSignupFormSubmit(event) {
     event.preventDefault();
     clearAllErrors(signupForm); // Clear previous errors
+
+    const businessNameInput = document.getElementById('signup-business-name');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmPasswordInput = document.getElementById('signup-confirm-password');
+    const signupButton = signupForm.querySelector('button[type="submit"]');
 
     let isValid = true;
 
     // Validate Business Name
-    const businessNameInput = document.getElementById('signup-business-name');
     if (businessNameInput && !isNotEmpty(businessNameInput.value)) {
         displayError(businessNameInput, 'Business name is required.');
         isValid = false;
     } else if (!businessNameInput) {
         console.warn('Signup business name input not found');
+        showToast('Business name input not found in the form.', 'error');
         isValid = false;
     }
 
     // Validate Email
-    const emailInput = document.getElementById('signup-email');
     if (emailInput && !isNotEmpty(emailInput.value)) {
         displayError(emailInput, 'Email is required.');
         isValid = false;
@@ -182,11 +389,11 @@ export function handleSignupFormSubmit(event) {
         isValid = false;
     } else if (!emailInput) {
         console.warn('Signup email input not found');
+        showToast('Email input not found in the form.', 'error');
         isValid = false;
     }
 
     // Validate Password
-    const passwordInput = document.getElementById('signup-password');
     if (passwordInput && !isNotEmpty(passwordInput.value)) {
         displayError(passwordInput, 'Password is required.');
         isValid = false;
@@ -195,33 +402,67 @@ export function handleSignupFormSubmit(event) {
         isValid = false;
     } else if (!passwordInput) {
         console.warn('Signup password input not found');
+        showToast('Password input not found in the form.', 'error');
         isValid = false;
     }
 
     // Validate Confirm Password
-    const confirmPasswordInput = document.getElementById('signup-confirm-password');
     if (confirmPasswordInput && !isNotEmpty(confirmPasswordInput.value)) {
         displayError(confirmPasswordInput, 'Please confirm your password.');
         isValid = false;
-    } else if (passwordInput && confirmPasswordInput && confirmPasswordInput.value !== passwordInput.value) {
+    } else if (passwordInput && confirmPasswordInput && passwordInput.value !== confirmPasswordInput.value) {
         displayError(confirmPasswordInput, 'Passwords do not match.');
         isValid = false;
     } else if (!confirmPasswordInput) {
         console.warn('Signup confirm password input not found');
+        showToast('Confirm password input not found in the form.', 'error');
         isValid = false;
     }
 
     if (isValid) {
-        // Display mock success message
-        const formContainer = signupForm.closest('.form-container');
-        if (formContainer) {
-            formContainer.innerHTML = '<p class="success-message" style="color: green; border: 1px solid green; padding: 10px; border-radius: 5px;">Sign-up successful! Please login.</p>';
-        } else {
-            signupForm.innerHTML = '<p class="success-message" style="color: green;">Sign-up successful! Please login.</p>';
+        if (signupButton) setButtonLoadingState(signupButton, true, 'Signing up...');
+
+        const name = businessNameInput.value;
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok || response.status === 201) { // Handle 200 or 201 for successful registration
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token);
+                    showToast('Registration successful! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'business-dashboard.html';
+                    }, 1500);
+                } else {
+                    // If no token, but success, redirect to login
+                    showToast(data.message || 'Registration successful! Please login.', 'success');
+                     setTimeout(() => {
+                        window.location.href = 'business-login.html';
+                    }, 1500);
+                }
+                 if (signupForm) signupForm.reset(); // Reset form on success
+            } else {
+                // Handle errors like "User already exists" (400 or 409 typically) or server errors (500)
+                console.error('Signup failed:', data);
+                showToast(data.message || 'Registration failed. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error('Error during signup fetch:', error);
+            showToast('An unexpected error occurred during signup. Please try again.', 'error');
+        } finally {
+            if (signupButton) setButtonLoadingState(signupButton, false, 'Sign Up');
         }
-        // In a real app, you'd proceed with actual signup logic here.
-        // For instance, you might clear the form or redirect to login.
-        // signupForm.reset(); // Optionally reset the form
     }
 }
 
@@ -241,61 +482,139 @@ export function openModal() {
 }
 
 export function closeModal() {
-    if (listingModal) { // Check if element exists
+    if (listingModal) {
         listingModal.classList.remove('is-open');
         listingModal.setAttribute('aria-hidden', 'true');
-        if (listingForm) { // Ensure listingForm is available
-            listingForm.reset(); // Clear form on close
+
+        const modalTitle = document.getElementById('listingModalTitle');
+        const saveBtn = listingForm?.querySelector('button[type="submit"]');
+
+        if (modalTitle) modalTitle.textContent = 'Add New Listing';
+        if (saveBtn) saveBtn.textContent = 'Save Listing';
+
+        if (listingForm) {
+            listingForm.reset();
         }
+        editingDealId = null; // Reset editing state
     } else {
         console.warn("listingModal not found. Cannot close modal.");
     }
 }
 
+// --- Handle Edit Deal Click ---
+async function handleEditDealClick(dealId) {
+    editingDealId = dealId;
+    const token = getAuthToken();
+
+    if (!token) {
+        showToast("Authentication required. Please login.", "error");
+        logoutUser();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/deals/${dealId}`, {
+            headers: { 'x-auth-token': token }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                const deal = result.data;
+                // Populate form
+                if (listingForm) {
+                    listingForm.elements.itemName.value = deal.itemName || '';
+                    listingForm.elements.itemDescription.value = deal.description || '';
+                    listingForm.elements.itemCategory.value = deal.category || '';
+                    listingForm.elements.itemPrice.value = deal.originalPrice || '';
+                    listingForm.elements.itemDiscountedPrice.value = deal.discountedPrice || '';
+                    listingForm.elements.itemQuantity.value = deal.quantityAvailable || '';
+                    // Format date for input type="date" which expects YYYY-MM-DD
+                    listingForm.elements.itemExpiryDate.value = deal.bestBeforeDate ? deal.bestBeforeDate.split('T')[0] : '';
+                    listingForm.elements.itemPickupLocation.value = deal.pickupInstructions || '';
+                    // if (listingForm.elements.imageURL) listingForm.elements.imageURL.value = deal.imageURL || '';
+                }
+
+                const modalTitle = document.getElementById('listingModalTitle');
+                const saveBtn = listingForm?.querySelector('button[type="submit"]');
+                if (modalTitle) modalTitle.textContent = 'Edit Deal';
+                if (saveBtn) saveBtn.textContent = 'Save Changes';
+
+                openModal();
+            } else {
+                throw new Error(result.message || "Deal data not found in response.");
+            }
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to fetch deal (HTTP ${response.status})`);
+        }
+    } catch (error) {
+        console.error("Error fetching deal for edit:", error);
+        showToast(`Failed to fetch deal details: ${error.message}`, 'error');
+        editingDealId = null;
+    }
+}
+
+
 // --- Listings Display Function (Dashboard Specific) ---
 // Exported for testing
-export function renderListings(listingsArray) {
-    if (!listingsContainer) { // Check if element exists
+export function renderListings(dealsArray) { // Parameter renamed to dealsArray
+    if (!listingsContainer) {
         console.warn("listingsContainer not found. Cannot render listings.");
         return;
     }
 
     listingsContainer.innerHTML = ''; // Clear existing listings
 
-    if (listingsArray.length === 0) {
+    if (dealsArray.length === 0) {
         if (noListingsMessage) noListingsMessage.style.display = 'block';
-            // Remove static placeholders if they exist and array is empty
-        const staticPlaceholders = listingsContainer.querySelectorAll('.listing-item.static-placeholder');
-        staticPlaceholders.forEach(ph => ph.remove());
     } else {
         if (noListingsMessage) noListingsMessage.style.display = 'none';
     }
 
-    listingsArray.forEach(listing => {
+    dealsArray.forEach(deal => { // Iterate over deal
         const listingElement = document.createElement('div');
         listingElement.classList.add('listing-item');
-        listingElement.dataset.id = listing.id; // Useful for future interactions
+        listingElement.dataset.id = deal._id; // Use deal._id from MongoDB
 
-        // Constructing the inner HTML for the listing item
-        // Ensure these class names match your CSS for .listing-item and its children
-        // Using 'itemName' from JSON, ensure all fields match
-        const priceToShow = listing.originalPrice ? listing.price : (listing.price || 0); // If originalPrice exists, then 'price' is the discounted one.
-        const originalPriceToShow = listing.originalPrice ? listing.originalPrice : null;
+        let priceDisplay = '';
+        const discountedPrice = parseFloat(deal.discountedPrice);
+        const originalPrice = parseFloat(deal.originalPrice);
+
+        if (deal.discountedPrice && discountedPrice < originalPrice) {
+            priceDisplay = `<p class="listing-item-details"><strong>Price:</strong> R${discountedPrice.toFixed(2)} <s class="original-price-display">R${originalPrice.toFixed(2)}</s></p>`;
+        } else {
+            priceDisplay = `<p class="listing-item-details"><strong>Price:</strong> R${originalPrice.toFixed(2)}</p>`;
+        }
+
+        // Format bestBeforeDate if it exists
+        let formattedBestBeforeDate = 'N/A';
+        if (deal.bestBeforeDate) {
+            try {
+                formattedBestBeforeDate = new Date(deal.bestBeforeDate).toLocaleDateString('en-ZA', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+            } catch (e) {
+                console.warn("Could not parse bestBeforeDate:", deal.bestBeforeDate, e);
+                // Keep N/A or use raw value if preferred
+                formattedBestBeforeDate = deal.bestBeforeDate.split('T')[0]; // Basic fallback
+            }
+        }
+
 
         listingElement.innerHTML = `
             <div class="listing-item-content">
-                <h3 class="listing-item-name">${listing.itemName}</h3>
-                <p class="listing-item-details"><strong>Price:</strong> R${parseFloat(priceToShow).toFixed(2)}</p>
-                ${originalPriceToShow ? `<p class="listing-item-details original-price-display"><s>Original: R${parseFloat(originalPriceToShow).toFixed(2)}</s></p>` : ''}
-                <p class="listing-item-details"><strong>Quantity:</strong> ${listing.quantity}</p>
-                <p class="listing-item-details"><strong>Expiry Date:</strong> ${listing.expiryDate}</p>
-                <p class="listing-item-details" data-field="description"><strong>Description:</strong> ${listing.description || 'N/A'}</p>
-                <p class="listing-item-details"><strong>Category:</strong> ${listing.category || 'N/A'}</p>
-                <p class="listing-item-details"><strong>Pickup:</strong> ${listing.pickupLocation || 'N/A'}</p>
+                <h3 class="listing-item-name">${deal.itemName}</h3>
+                ${priceDisplay}
+                <p class="listing-item-details"><strong>Quantity:</strong> ${deal.quantityAvailable}</p>
+                <p class="listing-item-details"><strong>Best Before:</strong> ${formattedBestBeforeDate}</p>
+                <p class="listing-item-details" data-field="description"><strong>Description:</strong> ${deal.description || 'N/A'}</p>
+                <p class="listing-item-details"><strong>Category:</strong> ${deal.category || 'N/A'}</p>
+                <p class="listing-item-details"><strong>Pickup:</strong> ${deal.pickupInstructions || 'N/A'}</p>
             </div>
             <div class="listing-item-actions">
-                <button type="button" class="button-style button-edit" data-id="${listing.id}">Edit</button>
-                <button type="button" class="button-style button-delete" data-id="${listing.id}">Delete</button>
+                <button type="button" class="button-style button-edit" data-id="${deal._id}">Edit</button>
+                <button type="button" class="button-style button-delete" data-id="${deal._id}">Delete</button>
             </div>
         `;
         listingsContainer.appendChild(listingElement);
@@ -304,76 +623,166 @@ export function renderListings(listingsArray) {
 
 // --- Form Submission Handling (Dashboard Specific - Add/Edit Listing) ---
 // Exported for testing or can be tested via UI interaction
-export function handleFormSubmit(event) {
+export async function handleFormSubmit(event) {
     event.preventDefault(); // Prevent default page reload
 
-    if (!listingForm) { // Check if element exists
+    if (!listingForm) {
         console.error("listingForm not found. Cannot handle form submission.");
         return;
     }
 
     const saveBtn = listingForm.querySelector('button[type="submit"]'); // Get the submit button
-    if (saveBtn) {
-        setButtonLoadingState(saveBtn, true);
+
+    // Check for currentUserStore
+    if (!currentUserStore || !currentUserStore._id) {
+        showToast("You must have a registered store to add deals. Please create or verify your store profile.", 'error');
+        if (saveBtn) setButtonLoadingState(saveBtn, false); // Reset button if it was set to loading
+        return;
     }
 
-    const formData = new FormData(listingForm);
-    const newListing = {};
-    formData.forEach((value, key) => {
-        newListing[key] = value;
-    });
+    const token = getAuthToken();
+    if (!token) {
+        showToast("Authentication token not found. Please login again.", 'error');
+        if (saveBtn) setButtonLoadingState(saveBtn, false);
+        logoutUser(); // Redirect to login
+        return;
+    }
 
-    if (newListing.itemDiscountedPrice && parseFloat(newListing.itemDiscountedPrice) > 0) {
-        newListing.originalPrice = parseFloat(newListing.itemPrice);
-        newListing.price = parseFloat(newListing.itemDiscountedPrice);
+    if (saveBtn) setButtonLoadingState(saveBtn, true, "Saving...");
+
+    const dealData = {
+        storeId: currentUserStore._id,
+        itemName: listingForm.elements.itemName.value,
+        description: listingForm.elements.itemDescription.value,
+        category: listingForm.elements.itemCategory.value,
+        originalPrice: parseFloat(listingForm.elements.itemPrice.value),
+        quantityAvailable: listingForm.elements.itemQuantity.value, // API expects quantityAvailable
+        bestBeforeDate: listingForm.elements.itemExpiryDate.value,
+        pickupInstructions: listingForm.elements.itemPickupLocation.value,
+        // imageURL can be added if an input field for it exists
+    };
+
+    // Handle optional discountedPrice
+    const discountedPriceValue = listingForm.elements.itemDiscountedPrice.value;
+    if (discountedPriceValue && parseFloat(discountedPriceValue) > 0) {
+        dealData.discountedPrice = parseFloat(discountedPriceValue);
+    }
+
+    // TODO: Add client-side validation for prices (e.g., discounted < original) if not already covered by backend.
+
+    let response;
+    let endpoint;
+    let method;
+
+    if (editingDealId) {
+        // Update existing deal
+        method = 'PUT';
+        endpoint = `/api/deals/${editingDealId}`;
     } else {
-        newListing.price = parseFloat(newListing.itemPrice);
+        // Create new deal
+        method = 'POST';
+        endpoint = '/api/deals';
     }
-    delete newListing.itemPrice;
-    delete newListing.itemDiscountedPrice;
 
-    newListing.id = 'new' + Date.now().toString();
-    console.log('New Listing Data:', newListing);
-
-    // Simulate backend save and show toast
-    // In a real app, this would be after a successful response from a backend API
-    saveListingToBackend(newListing)
-        .then(() => {
-            showToast('Listing saved successfully!', 'success');
-            currentListings.push(newListing); // Add to the global array
-            renderListings(currentListings); // Re-render
-            closeModal(); // Close modal
-        })
-        .catch(error => {
-            console.error('Failed to save listing:', error);
-            showToast('Failed to save listing. Please try again.', 'error');
-            // Optionally, do not close modal or clear form if save fails
-        })
-        .finally(() => {
-            if (saveBtn) {
-                setButtonLoadingState(saveBtn, false);
-            }
+    try {
+        response = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token,
+            },
+            body: JSON.stringify(dealData),
         });
-}
 
-// Simulated backend function (replace with actual API call)
-async function saveListingToBackend(listingData) {
-    console.log("Listing data to save (simulated backend):", listingData);
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Simulate success/failure (can be made random for testing)
-    if (Math.random() < 0.95) { // 95% success rate
-        return Promise.resolve({ success: true, id: listingData.id });
-    } else {
-        return Promise.reject({ success: false, message: "Simulated server error." });
+        if (response.ok) {
+            // const responseData = await response.json(); // Get response data if needed
+            if (editingDealId) {
+                showToast('Deal updated successfully!', 'success');
+            } else {
+                showToast('Deal added successfully!', 'success');
+            }
+            await loadUserDeals();
+            closeModal(); // This also resets editingDealId, form, title, button
+        } else {
+            const errorData = await response.json();
+            console.error(`Failed to ${editingDealId ? 'update' : 'add'} deal:`, errorData);
+            showToast(errorData.message || `Failed to ${editingDealId ? 'update' : 'add'} deal. Please check the form.`, 'error');
+            // Optionally, do not close modal on error for edits, so user can correct
+        }
+    } catch (error) {
+        console.error(`Error submitting ${editingDealId ? 'update' : 'add'} deal:`, error);
+        showToast(`An unexpected error occurred while ${editingDealId ? 'updating' : 'saving'} the deal.`, 'error');
+    } finally {
+        // Reset button text based on whether it was an edit or add, done by closeModal if successful
+        // but if there was an error and modal didn't close, button state needs reset.
+        if (saveBtn) {
+            const buttonText = editingDealId && !response?.ok ? "Save Changes" : "Save Listing";
+            setButtonLoadingState(saveBtn, false, buttonText);
+        }
+         // If it was an edit and it failed, editingDealId is still set.
+         // If it was an add and it failed, editingDealId is null.
+         // closeModal() handles resetting editingDealId if successful.
     }
 }
+
+// --- Handle Delete Deal Click ---
+async function handleDeleteDealClick(dealId) {
+    if (!window.confirm("Are you sure you want to delete this deal?")) {
+        return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+        showToast("Authentication required. Please login.", "error");
+        logoutUser();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/deals/${dealId}`, {
+            method: 'DELETE',
+            headers: { 'x-auth-token': token }
+        });
+
+        if (response.ok || response.status === 204) { // 204 No Content is also a success for DELETE
+            showToast('Deal deleted successfully!', 'success');
+            await loadUserDeals(); // Refresh the list
+        } else {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                // If response is not JSON (e.g. just text for a 500 error)
+                errorData = { message: response.statusText || "Failed to delete deal." };
+            }
+            console.error(`Failed to delete deal (HTTP ${response.status}):`, errorData.message);
+            showToast(errorData.message || `Failed to delete deal. Server responded with ${response.status}.`, 'error');
+        }
+    } catch (error) {
+        console.error("Error deleting deal:", error);
+        showToast('An unexpected error occurred while deleting the deal.', 'error');
+    }
+}
+
 
 // Setter for currentListings for testing purposes
 export function setCurrentListings(listings) {
     currentListings = listings;
 }
+
+// --- Authentication Utility Functions ---
+export function getAuthToken() {
+    return localStorage.getItem('authToken');
+}
+
+export function logoutUser() {
+    localStorage.removeItem('authToken');
+    // Redirect to login page, ensuring it's the correct path
+    // Assuming business-login.html is at the same level or root.
+    // Adjust path if structure is different, e.g., '/pages/business-login.html'
+    window.location.href = 'business-login.html';
+}
+
 
 // --- Auto-initialize on DOMContentLoaded for browser environment ---
 // For testing, initBusinessPortal will be called manually.

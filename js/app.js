@@ -5,7 +5,7 @@ let allDeals = []; // To store fetched deals
 // Import functions from deals.js and ui.js
 import { fetchDeals, getFilteredAndSortedDeals, getDealById } from './deals.js';
 import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState } from './ui.js';
-import { populateModalWithDeal, openModal } from './modal.js';
+import { populateModalWithDeal, openModal, initModal } from './modal.js';
 
 // DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +49,7 @@ function initProductsPage() {
 async function initDealsPage() {
     console.log("Initializing deals page...");
     initUI(filterAndRenderDeals, clearAllFiltersAndRender, handleViewDeal);
+    initModal(getDealById); // Initialize the modal system
 
     // Initial load of deals
     await filterAndRenderDeals();

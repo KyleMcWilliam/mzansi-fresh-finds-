@@ -143,9 +143,9 @@ async function handleViewDeal(dealId, buttonElement) {
         // Simulate a short delay to ensure spinner is visible
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        const deal = getDealById(dealId);
-        if (deal) {
-            populateModalWithDeal(deal);
+        const deal = getDealById(dealId); // We still need the deal object for the 'if (deal)' check
+        if (deal) { // Check if the deal object exists
+            populateModalWithDeal(dealId); // <--- CHANGE THIS LINE to pass dealId
             openModal();
         } else {
             console.warn(`Deal with ID ${dealId} not found.`);

@@ -2,6 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 
+// Startup Configuration Warnings
+if (config.mongoURI === 'mongodb://localhost:27017/your-database-name') {
+    console.warn('\x1b[33m%s\x1b[0m', 'WARNING: Default placeholder mongoURI detected in config/config.js. MongoDB may not connect or use an unintended database. Please update it.');
+}
+if (config.jwtSecret === 'your-jwt-secret') {
+    console.warn('\x1b[33m%s\x1b[0m', 'WARNING: Default placeholder jwtSecret detected in config/config.js. This is insecure and should be changed for production. Please update it.');
+}
+
 // Initialize Express app
 const app = express();
 
@@ -10,8 +18,17 @@ app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(config.mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+  .then(() => console.log('MongoDB connected successfully.'))
+  .catch(err => {
+    console.error('\x1b[31m%s\x1b[0m', 'ERROR: MongoDB connection failed.');
+    console.error('Details:', err.message);
+    if (err.name === 'MongoParseError' || err.message.includes('connect ECONNREFUSED')) {
+        console.error('\x1b[36m%s\x1b[0m', 'Hint: Check if your MongoDB server is running and accessible.');
+    }
+    if (config.mongoURI === 'mongodb://localhost:27017/your-database-name') {
+        console.error('\x1b[36m%s\x1b[0m', 'Hint: The mongoURI is still the default placeholder. Ensure it points to your actual MongoDB instance and database.');
+    }
+  });
 
 // Define a simple route
 app.get('/', (req, res) => {

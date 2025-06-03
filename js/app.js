@@ -344,8 +344,10 @@ async function filterAndRenderDeals(dealsContainer) { // Added dealsContainer pa
         // If deals.html should show ALL deals by default without specific filters from its UI, adjust queryParams.
         // For example, remove searchTerm if it's not part of deals.html UI for fetching.
         // The current getFilterValues in ui.js assumes searchInput, categoryFilter, sortDealsSelect exist.
+        console.log("[filterAndRenderDeals - index.html context] Query Params for API:", queryParams); // DIAGNOSTIC
 
         const deals = await fetchDeals(queryParams); // Using the new fetchDeals
+        console.log("[filterAndRenderDeals - index.html context] Deals received from API:", deals); // DIAGNOSTIC
         allDeals = deals; // Store for this page context
 
         // renderDeals now takes container, searchTerm, category for its noDealsMessage

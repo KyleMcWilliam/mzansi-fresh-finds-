@@ -1,169 +1,151 @@
 // tests/deals.test.js
-import { getFilteredAndSortedDeals, fetchDeals, getDealById } from '../js/deals.js';
+import { fetchDeals } from '../js/deals.js';
 // Test helpers (assertEquals, assert, summarizeTests) are globally available from test-runner.html
 
-console.log("--- Running deals.test.js ---");
+console.log("--- Running deals.test.js (New API-focused tests) ---");
 
-// Mock rawDeals directly to avoid actual fetch and test logic synchronously
-// This is a simplified version of the actual deals structure
-const sampleRawDeals = [
-    { id: 1, itemName: "Old Bread", businessName: "Bakery A", originalPrice: 20, discountedPrice: 10, bestBefore: "2024-01-01", category: "bakery", description: "Slightly old bread" },
-    { id: 2, itemName: "Ripe Bananas", businessName: "Fruit Shop B", originalPrice: 30, discountedPrice: 15, bestBefore: "2024-01-03", category: "fruitveg", description: "Very ripe bananas" },
-    { id: 3, itemName: "Fresh Milk", businessName: "Dairy C", originalPrice: 25, discountedPrice: 20, bestBefore: "2024-01-05", category: "dairy", description: "Fresh whole milk" },
-    { id: 4, itemName: "Aged Cheese", businessName: "Dairy C", originalPrice: 100, discountedPrice: 50, bestBefore: "2024-01-02", category: "dairy", description: "Fine aged cheese" },
-    { id: 5, itemName: "Day-Old Croissants", businessName: "Bakery A", originalPrice: 40, discountedPrice: 10, bestBefore: "2024-01-04", category: "bakery", description: "Yesterday's croissants" }
-];
+// --- Mocking globalThis.fetch ---
+let originalGlobalFetch = globalThis.fetch;
+let mockFetchCallArgs;
+let mockFetchResponse;
+let mockFetchShouldReject = false;
+let mockFetchRejectionError;
 
-// Override the internal rawDeals used by the imported functions.
-// This is a common technique for testing modules with internal state or dependencies.
-// We need a way to set this internal state.
-// The deals.js module doesn't export a setter for rawDeals.
-// For this basic test setup, we'll have to rely on the fact that getFilteredAndSortedDeals
-// uses the 'rawDeals' variable from its own module scope.
-// A more robust solution would be to refactor deals.js to allow injection of deals for testing,
-// or to export a function that allows setting them.
-// For now, we'll assume that if we could "prime" it, this is how we'd test.
-// The subtask cannot modify deals.js to add a setter.
-// So, this test will *conceptually* test the logic assuming rawDeals is primed.
-// The actual execution in test-runner.html won't work perfectly for getFilteredAndSortedDeals
-// unless we simulate the fetchDeals behavior or modify deals.js.
+globalThis.fetch = async (url, options) => {
+    mockFetchCallArgs = { url: url.toString(), options }; // url might be a URL object
+    console.log(`Mock fetch called with URL: ${mockFetchCallArgs.url}`);
 
-// Let's create a wrapper or a way to test the pure logic part if possible.
-// The current structure of deals.js makes getFilteredAndSortedDeals hard to test without fetching.
-// We will focus on testing it by first "fetching" our sample data.
-
-// Mock fetchDeals to use sampleRawDeals
-let originalFetchDeals = globalThis.fetch; // Store original fetch if needed, though we're replacing module's fetch
-globalThis.fetch = async (path) => {
-    if (path === 'data/deals.json' || path === undefined) { // Path might be undefined if called from app.js init
-        return {
-            ok: true,
-            json: async () => JSON.parse(JSON.stringify(sampleRawDeals)) // Return a deep copy
-        };
+    if (mockFetchShouldReject) {
+        return Promise.reject(mockFetchRejectionError || new Error("Simulated Network Error"));
     }
-    return originalFetchDeals ? originalFetchDeals(path) : new Response('Not found', { status: 404 });
+    return Promise.resolve(mockFetchResponse);
 };
 
+function setFetchMock(response, shouldReject = false, rejectionError = null) {
+    mockFetchResponse = response;
+    mockFetchShouldReject = shouldReject;
+    mockFetchRejectionError = rejectionError;
+}
+
+function resetFetchMock() {
+    mockFetchCallArgs = null;
+    mockFetchResponse = null;
+    mockFetchShouldReject = false;
+    mockFetchRejectionError = null;
+}
+// --- End Mocking ---
 
 (async () => {
-    // Prime the deals module with our sample data by calling the actual fetchDeals
-    // which is now mocked to return our sample data.
+    // --- Test Case 1: Basic call with no parameters ---
+    console.log("\n--- Testing fetchDeals with no parameters ---");
+    resetFetchMock();
+    setFetchMock({
+        ok: true,
+        json: async () => ({ success: true, count: 1, data: [{ _id: '1', itemName: 'Test Deal 1' }] })
+    });
+
     try {
-        await fetchDeals('data/deals.json'); // This will now use the mocked fetch and populate internal rawDeals
-        console.log("Mocked fetchDeals completed and rawDeals should be populated internally in deals.js");
+        const deals = await fetchDeals({});
+        assertEquals(mockFetchCallArgs.url, `${window.location.origin}/api/deals`, "Test Case 1: Fetch URL is correct (no params)");
+        assert(Array.isArray(deals), "Test Case 1: Returned data is an array");
+        assertEquals(deals.length, 1, "Test Case 1: Returned one deal");
+        assertEquals(deals[0].itemName, "Test Deal 1", "Test Case 1: Deal content is correct");
     } catch (e) {
-        console.error("Error during mocked fetchDeals:", e);
+        assert(false, `Test Case 1 Failed: ${e.message}`);
     }
 
-    // --- Tests for getDealById (relies on fetchDeals having run) ---
-    console.log("\n--- Testing getDealById ---");
-    let deal = getDealById(3);
-    assert(deal !== null && deal.id === 3 && deal.itemName === "Fresh Milk", "getDealById: Find existing deal (ID 3)");
-    deal = getDealById(99);
-    assertEquals(deal, undefined, "getDealById: Find non-existing deal (ID 99)");
+    // --- Test Case 2: Call with various query parameters ---
+    console.log("\n--- Testing fetchDeals with query parameters ---");
+    resetFetchMock();
+    const queryParams = {
+        category: 'bakery',
+        sortBy: 'expiry',
+        latitude: '10.123',
+        longitude: '-20.456',
+        radius: '5',
+        someEmptyParam: '' // Should be ignored
+    };
+    const expectedApiUrl = new URL(`${window.location.origin}/api/deals`);
+    expectedApiUrl.searchParams.append('category', queryParams.category);
+    expectedApiUrl.searchParams.append('sortBy', queryParams.sortBy);
+    expectedApiUrl.searchParams.append('latitude', queryParams.latitude);
+    expectedApiUrl.searchParams.append('longitude', queryParams.longitude);
+    expectedApiUrl.searchParams.append('radius', queryParams.radius);
+    // someEmptyParam should not be added
 
+    setFetchMock({
+        ok: true,
+        json: async () => ({ success: true, count: 2, data: [{ _id: '2', itemName: 'Bakery Deal' }, { _id: '3', itemName: 'Another Bakery Deal' }] })
+    });
 
-    // --- Tests for Sorting (via getFilteredAndSortedDeals) ---
-    console.log("\n--- Testing Sorting ---");
-    let sortedDeals;
-
-    // Price Ascending
-    sortedDeals = getFilteredAndSortedDeals("", "all", "price-asc");
-    assertEquals(sortedDeals.length, 5, "Sort Price Asc: Correct number of deals");
-    if (sortedDeals.length === 5) {
-        assertEquals(sortedDeals[0].id, 1, "Sort Price Asc: First deal ID is 1 (Price 10)");
-        assertEquals(sortedDeals[1].id, 5, "Sort Price Asc: Second deal ID is 5 (Price 10)");
-        assertEquals(sortedDeals[2].id, 2, "Sort Price Asc: Third deal ID is 2 (Price 15)");
-        // Add more checks if needed
+    try {
+        const deals = await fetchDeals(queryParams);
+        assertEquals(mockFetchCallArgs.url, expectedApiUrl.toString(), "Test Case 2: Fetch URL with query params is correct");
+        assert(Array.isArray(deals), "Test Case 2: Returned data is an array");
+        assertEquals(deals.length, 2, "Test Case 2: Returned two deals");
+        assertEquals(deals[0].itemName, "Bakery Deal", "Test Case 2: First deal content is correct");
+    } catch (e) {
+        assert(false, `Test Case 2 Failed: ${e.message}`);
     }
 
-    // Price Descending
-    sortedDeals = getFilteredAndSortedDeals("", "all", "price-desc");
-    assertEquals(sortedDeals.length, 5, "Sort Price Desc: Correct number of deals");
-    if (sortedDeals.length === 5) {
-        assertEquals(sortedDeals[0].id, 4, "Sort Price Desc: First deal ID is 4 (Price 50)");
-        // Add more checks
+    // --- Test Case 3: API returns an error (ok: false) ---
+    console.log("\n--- Testing fetchDeals with API error ---");
+    resetFetchMock();
+    setFetchMock({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: async () => ({ success: false, error: "Simulated Server Error" }), // some APIs send error in json
+        text: async () => "Simulated Server Error Text Body" // if json fails or not called
+    });
+
+    try {
+        await fetchDeals({});
+        assert(false, "Test Case 3: fetchDeals should have thrown an error for API error response");
+    } catch (e) {
+        assert(e.message.includes("HTTP error! status: 500"), "Test Case 3: Error message contains status code");
+        assert(e.message.includes("Simulated Server Error Text Body"), "Test Case 3: Error message contains text body");
+        console.log("Test Case 3: Correctly threw error:", e.message);
     }
 
-    // Ending Soon (by bestBefore date)
-    // Dates: 1: 2024-01-01, 4: 2024-01-02, 2: 2024-01-03, 5: 2024-01-04, 3: 2024-01-05
-    sortedDeals = getFilteredAndSortedDeals("", "all", "ending-soon");
-    assertEquals(sortedDeals.length, 5, "Sort Ending Soon: Correct number of deals");
-    if (sortedDeals.length === 5) {
-        assertEquals(sortedDeals[0].id, 1, "Sort Ending Soon: First deal (2024-01-01)");
-        assertEquals(sortedDeals[1].id, 4, "Sort Ending Soon: Second deal (2024-01-02)");
-        assertEquals(sortedDeals[2].id, 2, "Sort Ending Soon: Third deal (2024-01-03)");
-        assertEquals(sortedDeals[3].id, 5, "Sort Ending Soon: Fourth deal (2024-01-04)");
-        assertEquals(sortedDeals[4].id, 3, "Sort Ending Soon: Fifth deal (2024-01-05)");
+    // --- Test Case 4: API returns success:false in JSON ---
+    console.log("\n--- Testing fetchDeals with API success:false ---");
+    resetFetchMock();
+    setFetchMock({
+        ok: true, // HTTP request itself was fine
+        json: async () => ({ success: false, error: "API processed but indicated failure" })
+    });
+
+    try {
+        await fetchDeals({});
+        assert(false, "Test Case 4: fetchDeals should have thrown an error for success:false");
+    } catch (e) {
+        assert(e.message.includes("Invalid API response structure. Expected { success: true, data: [...] }") || e.message.includes("API processed but indicated failure"), "Test Case 4: Correct error for success:false");
+        console.log("Test Case 4: Correctly threw error:", e.message);
     }
 
-    // Default Sort (should be original order or by ID if no other criteria)
-    // Our sample deals are by ID, so this should hold.
-    sortedDeals = getFilteredAndSortedDeals("", "all", "default");
-    assertEquals(sortedDeals.length, 5, "Sort Default: Correct number of deals");
-    if (sortedDeals.length > 0) {
-         // Default sort in deals.js just returns a copy, so order isn't guaranteed unless it's ID based.
-         // For this test, we'll assume it's stable based on the sample.
-        assert(sortedDeals[0].id === 1 && sortedDeals[1].id === 2, "Sort Default: Check first few items by ID");
+
+    // --- Test Case 5: Network error (fetch rejects) ---
+    console.log("\n--- Testing fetchDeals with network error ---");
+    resetFetchMock();
+    const networkError = new TypeError("Failed to fetch (simulated network error)"); // TypeError is common for network issues
+    setFetchMock(null, true, networkError);
+
+    try {
+        await fetchDeals({});
+        assert(false, "Test Case 5: fetchDeals should have thrown for network error");
+    } catch (e) {
+        assertEquals(e.message, networkError.message, "Test Case 5: Correctly threw network error");
+        console.log("Test Case 5: Correctly threw error:", e.message);
     }
 
-    // --- Tests for Filtering ---
-    console.log("\n--- Testing Filtering ---");
-    let filteredDeals;
 
-    // By Search Term
-    filteredDeals = getFilteredAndSortedDeals("Bread", "all", "default");
-    assertEquals(filteredDeals.length, 1, "Filter Search: 'Bread' - 1 match");
-    if (filteredDeals.length === 1) assertEquals(filteredDeals[0].id, 1, "Filter Search: 'Bread' - correct item");
-
-    filteredDeals = getFilteredAndSortedDeals("milk", "all", "default"); // Case-insensitive
-    assertEquals(filteredDeals.length, 1, "Filter Search: 'milk' (lowercase) - 1 match");
-    if (filteredDeals.length === 1) assertEquals(filteredDeals[0].id, 3, "Filter Search: 'milk' - correct item");
-
-    filteredDeals = getFilteredAndSortedDeals("ripe", "all", "default"); // Matches description
-    assertEquals(filteredDeals.length, 1, "Filter Search: 'ripe' (description) - 1 match");
-    if (filteredDeals.length === 1) assertEquals(filteredDeals[0].id, 2, "Filter Search: 'ripe' - correct item (Bananas)");
-
-    filteredDeals = getFilteredAndSortedDeals("Bakery A", "all", "default"); // Matches businessName
-    assertEquals(filteredDeals.length, 2, "Filter Search: 'Bakery A' (business) - 2 matches");
-
-
-    // By Category
-    filteredDeals = getFilteredAndSortedDeals("", "bakery", "default");
-    assertEquals(filteredDeals.length, 2, "Filter Category: 'bakery' - 2 matches");
-    assert(filteredDeals.every(d => d.category === 'bakery'), "Filter Category: 'bakery' - all items are bakery");
-
-    filteredDeals = getFilteredAndSortedDeals("", "dairy", "default");
-    assertEquals(filteredDeals.length, 2, "Filter Category: 'dairy' - 2 matches");
-
-    // Combined Filter and Sort
-    console.log("\n--- Testing Combined Filter & Sort ---");
-    filteredDeals = getFilteredAndSortedDeals("croissants", "bakery", "price-asc"); // Day-Old Croissants, price 10
-    assertEquals(filteredDeals.length, 1, "Filter & Sort: 'croissants' in 'bakery', price asc - 1 match");
-    if (filteredDeals.length === 1) {
-        assertEquals(filteredDeals[0].id, 5, "Filter & Sort: Correct item (Croissants)");
-    }
-
-    filteredDeals = getFilteredAndSortedDeals("", "dairy", "price-desc"); // Milk (20), Cheese (50)
-    assertEquals(filteredDeals.length, 2, "Filter & Sort: 'dairy', price desc - 2 matches");
-    if (filteredDeals.length === 2) {
-        assertEquals(filteredDeals[0].id, 4, "Filter & Sort: Dairy, price desc - First is Cheese (ID 4)");
-        assertEquals(filteredDeals[1].id, 3, "Filter & Sort: Dairy, price desc - Second is Milk (ID 3)");
-    }
-
-    // No results
-    filteredDeals = getFilteredAndSortedDeals("NonExistent", "all", "default");
-    assertEquals(filteredDeals.length, 0, "Filter Search: No results - 0 matches");
-
-    console.log("--- Finished deals.test.js ---");
-
-    // Call summarizeTests from test-runner.html after all test files
-    // If this is the last test file, you could call it here too.
-    // For now, let test-runner.html handle the final summary.
+    console.log("\n--- Finished deals.test.js (New API-focused tests) ---");
+    // Ensure to call summarizeTests from test-runner.html or after all test files have run.
     if (typeof summarizeTests === 'function' && window.location.pathname.includes('test-runner.html')) {
-        // This is a bit of a hack to ensure it's called last if this is the only other test file.
-        // The test-runner.html's load event is more reliable.
+        // This is here for potential standalone testing, but test-runner.html should manage the final call.
     }
-})();
 
-EOL
+    // Restore original fetch if it was stored, good practice though not strictly needed if page reloads for each test run
+    // globalThis.fetch = originalGlobalFetch;
+})();

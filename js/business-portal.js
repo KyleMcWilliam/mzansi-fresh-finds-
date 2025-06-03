@@ -16,6 +16,9 @@ let editingDealId = null;
 
 // --- DOM Element References (initialized in initBusinessPortal) ---
 let addNewListingBtn, listingModal, listingForm, closeModalElements, listingsContainer, noListingsMessage, loginForm, signupForm;
+let storeProfileModal, storeProfileForm, storeProfileModalTitle, saveStoreProfileBtn, manageStoreProfileBtn;
+let storeProfileModalCloseElements; // For overlay and close button of store profile modal
+
 
 // --- Main Initialization Function ---
 export async function initBusinessPortal() { // Made async
@@ -71,8 +74,25 @@ export async function initBusinessPortal() { // Made async
                 }
 
                 // Proceed with dashboard initialization only if user is authenticated and store is (or isn't) found
-                initializeDashboardElements();
-                loadUserDeals(); // Renamed from loadInitialListings
+                initializeDashboardElements(); // This now also initializes store profile modal elements
+
+                if (!currentUserStore) {
+                    if (addNewListingBtn) addNewListingBtn.disabled = true;
+                    if (listingsContainer) {
+                        listingsContainer.innerHTML = `
+                            <p class="info-message">
+                                Welcome! Please create your store profile to start managing your deals.
+                                <button type="button" class="button-style" id="promptCreateStoreBtn">Create Store Profile</button>
+                            </p>`;
+                        const promptBtn = document.getElementById('promptCreateStoreBtn');
+                        if(promptBtn) promptBtn.addEventListener('click', openStoreProfileModal);
+                    }
+                    if (noListingsMessage) noListingsMessage.style.display = 'none';
+                     // Optionally auto-open modal: openStoreProfileModal();
+                } else {
+                    if (addNewListingBtn) addNewListingBtn.disabled = false;
+                    loadUserDeals(); // Renamed from loadInitialListings
+                }
             } else {
                 // Handle 401 (invalid/expired token) or other errors
                 const errorData = await response.json();
@@ -105,60 +125,99 @@ export async function initBusinessPortal() { // Made async
 function initializeDashboardElements() {
     console.log("Initializing dashboard DOM elements and event listeners...");
     // --- Initialize DOM Element References ---
+    // Deal Modal
     addNewListingBtn = document.getElementById('addNewListingBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        listingModal = document.getElementById('listingModal');
-        listingForm = document.getElementById('listingForm');
-        // Ensure modal exists before querying its children
-        if (listingModal) {
-            closeModalElements = listingModal.querySelectorAll('[data-close-modal]');
-        } else {
-            closeModalElements = []; // Avoid errors if modal is not in DOM (e.g. during some tests)
-        }
-        listingsContainer = document.getElementById('business-listings-container');
-        noListingsMessage = document.getElementById('no-listings-message');
+    listingModal = document.getElementById('listingModal');
+    listingForm = document.getElementById('listingForm');
+    if (listingModal) {
+        // Updated to use data-modal-id for more specific closing
+        closeModalElements = listingModal.querySelectorAll('[data-modal-id="listingModal"]');
+    } else {
+        closeModalElements = [];
+    }
+    listingsContainer = document.getElementById('business-listings-container');
+    noListingsMessage = document.getElementById('no-listings-message');
 
-    // --- Attach Event Listeners ---
-    if (addNewListingBtn) {
-        addNewListingBtn.addEventListener('click', openModal);
+    // Store Profile Modal
+    manageStoreProfileBtn = document.getElementById('manageStoreProfileBtn');
+    storeProfileModal = document.getElementById('storeProfileModal');
+    storeProfileForm = document.getElementById('storeProfileForm');
+    storeProfileModalTitle = document.getElementById('storeProfileModalTitle');
+    saveStoreProfileBtn = document.getElementById('saveStoreProfileBtn');
+    if (storeProfileModal) {
+        storeProfileModalCloseElements = storeProfileModal.querySelectorAll('[data-modal-id="storeProfileModal"]');
+    } else {
+        storeProfileModalCloseElements = [];
     }
 
-    const logoutBtn = document.getElementById('logoutBtn'); // Moved here
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logoutUser);
+
+    // --- Attach Event Listeners ---
+    // Deal Modal Listeners
+    if (addNewListingBtn) {
+        addNewListingBtn.addEventListener('click', () => {
+            // Reset for "Add New" mode before opening
+            editingDealId = null;
+            const modalTitle = document.getElementById('listingModalTitle');
+            const saveBtn = listingForm?.querySelector('button[type="submit"]');
+            if (modalTitle) modalTitle.textContent = 'Add New Listing';
+            if (saveBtn) saveBtn.textContent = 'Save Listing';
+            if (listingForm) listingForm.reset();
+            openModal(listingModal); // Pass the specific modal to open
+        });
     }
 
     closeModalElements.forEach(elem => {
-        elem.addEventListener('click', () => {
-            closeModal();
-        });
+        elem.addEventListener('click', () => closeModal(listingModal)); // Pass specific modal
     });
 
     if (listingModal) {
         listingModal.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
+            if (event.key === 'Escape') closeModal(listingModal); // Pass specific modal
         });
     }
-
     if (listingForm) {
         listingForm.addEventListener('submit', handleFormSubmit);
     }
 
-    // Event delegation for edit buttons
+    // Store Profile Modal Listeners
+    if (manageStoreProfileBtn) {
+        manageStoreProfileBtn.addEventListener('click', openStoreProfileModal);
+    }
+    storeProfileModalCloseElements.forEach(elem => {
+        elem.addEventListener('click', () => closeModal(storeProfileModal)); // Pass specific modal
+    });
+    if (storeProfileModal) {
+        storeProfileModal.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeModal(storeProfileModal); // Pass specific modal
+        });
+    }
+    if (storeProfileForm) {
+        storeProfileForm.addEventListener('submit', handleStoreProfileFormSubmit);
+    }
+
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logoutUser);
+    }
+
+    // Event delegation for edit/delete buttons in listingsContainer
+    // This is the single, correct version of this listener. Duplicates below this were removed.
     if (listingsContainer) {
         listingsContainer.addEventListener('click', async (event) => {
-            if (event.target.classList.contains('button-edit')) {
-                const dealId = event.target.dataset.id;
+            const targetButton = event.target.closest('button'); // Get the button element itself
+            if (!targetButton) return; // Click was not on a button or its child
+
+            const dealId = targetButton.dataset.id;
+
+            if (targetButton.classList.contains('button-edit')) {
                 if (dealId) {
                     await handleEditDealClick(dealId);
                 } else {
                     console.error("Edit button clicked but no deal ID found.");
                     showToast("Could not identify the deal to edit.", "error");
                 }
-            } else if (event.target.classList.contains('button-delete')) {
-                const dealId = event.target.dataset.id;
+            } else if (targetButton.classList.contains('button-delete')) {
                 if (dealId) {
                     await handleDeleteDealClick(dealId);
                 } else {
@@ -168,6 +227,9 @@ function initializeDashboardElements() {
             }
         });
     }
+    // Note: The duplicated keydown listener for listingModal and submit listener for listingForm
+    // were implicitly removed by ensuring the structure above is the one that remains.
+    // The earlier, correct listeners for listingModal keydown and listingForm submit are retained.
 
     // --- Initial Data Load (handled after auth check for dashboard) ---
     // Remove static HTML placeholders before the first render if JS is enabled
@@ -175,6 +237,154 @@ function initializeDashboardElements() {
     staticPlaceholders?.forEach(ph => ph.remove());
     // loadUserDeals(); // This is now called after successful auth in initBusinessPortal
 }
+
+
+// --- Store Profile Form Submission ---
+async function handleStoreProfileFormSubmit(event) {
+    event.preventDefault();
+    const token = getAuthToken();
+
+    if (!token) {
+        showToast("Authentication required. Please login.", "error");
+        logoutUser();
+        return;
+    }
+
+    const storeData = {
+        name: storeProfileForm.elements.storeName.value,
+        address: storeProfileForm.elements.address.value,
+        contactInfo: storeProfileForm.elements.contactInfo.value,
+        openingHours: storeProfileForm.elements.openingHours.value,
+        logoURL: storeProfileForm.elements.logoURL.value,
+    };
+
+    let method;
+    let endpoint;
+    let successMessage;
+    let initialButtonText;
+
+    if (currentUserStore && currentUserStore._id) {
+        method = 'PUT';
+        endpoint = `/api/stores/${currentUserStore._id}`;
+        successMessage = "Store profile updated successfully!";
+        initialButtonText = "Save Changes";
+    } else {
+        method = 'POST';
+        endpoint = '/api/stores';
+        successMessage = "Store profile created successfully!";
+        initialButtonText = "Create Store";
+    }
+
+    if (saveStoreProfileBtn) setButtonLoadingState(saveStoreProfileBtn, true, "Saving...");
+
+    try {
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token,
+            },
+            body: JSON.stringify(storeData),
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok && responseData.success) {
+            currentUserStore = responseData.data; // Update global store variable
+            showToast(successMessage, 'success');
+            closeModal(storeProfileModal);
+
+            // Re-evaluate UI state
+            if (addNewListingBtn) addNewListingBtn.disabled = false;
+            // If there was a prompt in listingsContainer, clear it and load deals
+            // This check ensures we don't unnecessarily reload if it was just an update with deals already showing.
+            if (listingsContainer.querySelector('#promptCreateStoreBtn')) {
+                 loadUserDeals();
+            } else if (method === 'PUT') { // If it was an update, still refresh deals in case store name changed etc.
+                 loadUserDeals();
+            }
+
+
+        } else {
+            console.error("Failed to save store profile:", responseData.message);
+            showToast(responseData.message || `Failed to save store profile.`, 'error');
+        }
+    } catch (error) {
+        console.error("Error saving store profile:", error);
+        showToast("An unexpected error occurred while saving the store profile.", 'error');
+    } finally {
+        if (saveStoreProfileBtn) setButtonLoadingState(saveStoreProfileBtn, false, initialButtonText);
+    }
+}
+
+
+// --- Modal Opening/Closing (Generic or Specific) ---
+// Generic open function
+function openModal(modalElement) {
+    if (modalElement) {
+        modalElement.classList.add('is-open');
+        modalElement.setAttribute('aria-hidden', 'false');
+        // Focus on the first focusable element in the modal, e.g., an input or button
+        modalElement.querySelector('input, select, textarea, button[type="submit"]')?.focus();
+    } else {
+        console.warn("Attempted to open a modal that was not found.");
+    }
+}
+
+// Generic close function (can be adapted if specific modals need more distinct reset logic)
+function closeModal(modalElement) {
+    if (modalElement) {
+        modalElement.classList.remove('is-open');
+        modalElement.setAttribute('aria-hidden', 'true');
+
+        const form = modalElement.querySelector('form');
+        if (form) form.reset();
+
+        // Reset specific states depending on the modal
+        if (modalElement.id === 'listingModal') {
+            editingDealId = null;
+            const modalTitle = document.getElementById('listingModalTitle');
+            const saveBtn = listingForm?.querySelector('button[type="submit"]');
+            if (modalTitle) modalTitle.textContent = 'Add New Listing';
+            if (saveBtn) saveBtn.textContent = 'Save Listing';
+        } else if (modalElement.id === 'storeProfileModal') {
+            // Reset store profile modal specific title/button if needed, though
+            // openStoreProfileModal handles setting them before opening.
+            // No specific 'editingStoreId' type variable to reset here yet.
+        }
+    } else {
+        console.warn("Attempted to close a modal that was not found.");
+    }
+}
+
+
+// --- Function to Open and Populate Store Profile Modal ---
+function openStoreProfileModal() {
+    if (!storeProfileModal || !storeProfileForm || !storeProfileModalTitle || !saveStoreProfileBtn) {
+        console.error("Store profile modal elements not initialized.");
+        showToast("Cannot open store profile form, elements missing.", "error");
+        return;
+    }
+
+    if (currentUserStore) {
+        // Populate form for editing
+        storeProfileForm.elements.storeName.value = currentUserStore.name || '';
+        storeProfileForm.elements.address.value = currentUserStore.address || '';
+        storeProfileForm.elements.contactInfo.value = currentUserStore.contactInfo || '';
+        storeProfileForm.elements.openingHours.value = currentUserStore.openingHours || '';
+        storeProfileForm.elements.logoURL.value = currentUserStore.logoURL || '';
+
+        storeProfileModalTitle.textContent = 'Edit Store Profile';
+        saveStoreProfileBtn.textContent = 'Save Changes';
+    } else {
+        // Clear form for creating
+        storeProfileForm.reset();
+        storeProfileModalTitle.textContent = 'Create Your Store Profile';
+        saveStoreProfileBtn.textContent = 'Create Store';
+    }
+    openModal(storeProfileModal); // Use generic open
+}
+
 
 // --- Function to Fetch User's Store ---
 async function fetchUserStore(userId) {
@@ -469,41 +679,41 @@ export async function handleSignupFormSubmit(event) {
 
 // --- Modal Interaction Functions (Dashboard Specific) ---
 // Exported for testing if needed, or test via UI interaction
-export function openModal() {
-    if (listingModal) { // Check if element exists
-        listingModal.classList.add('is-open');
-        listingModal.setAttribute('aria-hidden', 'false');
-        if (listingForm) { // Ensure listingForm is available
-             listingForm.querySelector('input, select, textarea')?.focus();
-        }
-    } else {
-        console.warn("listingModal not found. Cannot open modal.");
-    }
-}
+// export function openModal() { // This is now generic openModal(modalElement)
+//     if (listingModal) {
+//         listingModal.classList.add('is-open');
+//         listingModal.setAttribute('aria-hidden', 'false');
+//         if (listingForm) {
+//              listingForm.querySelector('input, select, textarea')?.focus();
+//         }
+//     } else {
+//         console.warn("listingModal not found. Cannot open modal.");
+//     }
+// }
 
-export function closeModal() {
-    if (listingModal) {
-        listingModal.classList.remove('is-open');
-        listingModal.setAttribute('aria-hidden', 'true');
+// export function closeModal() { // This is now generic closeModal(modalElement)
+//     if (listingModal) {
+//         listingModal.classList.remove('is-open');
+//         listingModal.setAttribute('aria-hidden', 'true');
 
-        const modalTitle = document.getElementById('listingModalTitle');
-        const saveBtn = listingForm?.querySelector('button[type="submit"]');
+//         const modalTitle = document.getElementById('listingModalTitle');
+//         const saveBtn = listingForm?.querySelector('button[type="submit"]');
 
-        if (modalTitle) modalTitle.textContent = 'Add New Listing';
-        if (saveBtn) saveBtn.textContent = 'Save Listing';
+//         if (modalTitle) modalTitle.textContent = 'Add New Listing';
+//         if (saveBtn) saveBtn.textContent = 'Save Listing';
 
-        if (listingForm) {
-            listingForm.reset();
-        }
-        editingDealId = null; // Reset editing state
-    } else {
-        console.warn("listingModal not found. Cannot close modal.");
-    }
-}
+//         if (listingForm) {
+//             listingForm.reset();
+//         }
+//         editingDealId = null; // Reset editing state
+//     } else {
+//         console.warn("listingModal not found. Cannot close modal.");
+//     }
+// }
 
 // --- Handle Edit Deal Click ---
 async function handleEditDealClick(dealId) {
-    editingDealId = dealId;
+    editingDealId = dealId; // Still specific to deal editing context
     const token = getAuthToken();
 
     if (!token) {
@@ -521,7 +731,6 @@ async function handleEditDealClick(dealId) {
             const result = await response.json();
             if (result.success && result.data) {
                 const deal = result.data;
-                // Populate form
                 if (listingForm) {
                     listingForm.elements.itemName.value = deal.itemName || '';
                     listingForm.elements.itemDescription.value = deal.description || '';
@@ -529,10 +738,8 @@ async function handleEditDealClick(dealId) {
                     listingForm.elements.itemPrice.value = deal.originalPrice || '';
                     listingForm.elements.itemDiscountedPrice.value = deal.discountedPrice || '';
                     listingForm.elements.itemQuantity.value = deal.quantityAvailable || '';
-                    // Format date for input type="date" which expects YYYY-MM-DD
                     listingForm.elements.itemExpiryDate.value = deal.bestBeforeDate ? deal.bestBeforeDate.split('T')[0] : '';
                     listingForm.elements.itemPickupLocation.value = deal.pickupInstructions || '';
-                    // if (listingForm.elements.imageURL) listingForm.elements.imageURL.value = deal.imageURL || '';
                 }
 
                 const modalTitle = document.getElementById('listingModalTitle');
@@ -540,7 +747,7 @@ async function handleEditDealClick(dealId) {
                 if (modalTitle) modalTitle.textContent = 'Edit Deal';
                 if (saveBtn) saveBtn.textContent = 'Save Changes';
 
-                openModal();
+                openModal(listingModal); // Open the specific listing/deal modal
             } else {
                 throw new Error(result.message || "Deal data not found in response.");
             }
@@ -551,7 +758,7 @@ async function handleEditDealClick(dealId) {
     } catch (error) {
         console.error("Error fetching deal for edit:", error);
         showToast(`Failed to fetch deal details: ${error.message}`, 'error');
-        editingDealId = null;
+        editingDealId = null; // Reset on error
     }
 }
 

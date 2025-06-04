@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= store.storeName %> - Store Profile</title>
+    <link rel="stylesheet" href="/style.css"> <link rel="stylesheet" href="/css/products.css">
+    <link rel="stylesheet" href="/css/store-profile.css"> </head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products.html">Products</a></li>
+                </ul>
+            </nav>
+            <h1><%= store.storeName %></h1>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div class="container">
+            <section class="store-details-section">
+                <h2>Store Information</h2>
+                <% if (store.logoURL) { %>
+                    <img src="<%= store.logoURL %>" alt="<%= store.storeName %> Logo" class="store-logo">
+                <% } %>
+                <p><strong>Address:</strong> <%= store.address %></p>
+                <% if (store.contactInfo) { %>
+                    <p><strong>Contact:</strong> <%= store.contactInfo %></p>
+                <% } %>
+                <% if (store.openingHours) { %>
+                    <p><strong>Opening Hours:</strong> <%= store.openingHours %></p>
+                <% } %>
+            </section>
+
+            <section class="store-deals-section">
+                <h2>Active Deals</h2>
+                <% if (deals && deals.length > 0) { %>
+                    <div class="deals-grid">
+                        <% deals.forEach(deal => { %>
+                            <div class="deal-card">
+                                <img src="<%= deal.imageURL || '/images/placeholders/default.svg' %>" alt="<%= deal.itemName %>" class="deal-image">
+                                <div class="deal-content">
+                                    <h3><%= deal.itemName %></h3>
+                                    <p class="deal-description"><%= deal.description %></p>
+                                    <p class="deal-price">
+                                        <span class="discounted-price">R<%= deal.discountedPrice.toFixed(2) %></span>
+                                        <% if (deal.originalPrice && deal.originalPrice > deal.discountedPrice) { %>
+                                            <span class="original-price">R<%= deal.originalPrice.toFixed(2) %></span>
+                                        <% } %>
+                                    </p>
+                                    <p>Quantity: <%= deal.quantityAvailable %></p>
+                                    <p>Best Before: <%= new Date(deal.bestBeforeDate).toLocaleDateString() %></p>
+                                    </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <p>This store currently has no active deals.</p>
+                <% } %>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>© <%= new Date().getFullYear() %> Mzansi Fresh Finds</p>
+        </div>
+    </footer>
+
+    <script>
+        // Basic client-side script if needed in the future
+    </script>
+</body>
+</html>

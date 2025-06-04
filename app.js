@@ -1,26 +1,39 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const config = require('./config/config');
+const path = require('path'); // Added
+const storeController = require('./controllers/storeController'); // Added
 
 // Initialize Express app
 const app = express();
 
+// View engine setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views')); // Explicitly set views directory
+
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false })); // Added
 
-// Connect to MongoDB - Moved to server.js for startup,
-// but connection should be established before app is used for requests.
-// For testing, test-helpers will manage its own connection.
-// In a typical setup, app definition doesn't wait for DB connection here.
+// Static files serving
+// Serve files directly from root (e.g., style.css, manifest.json)
+// Also allows access to /css, /js, /images as subdirectories of root
+app.use(express.static(path.join(__dirname, ''))); // Serves from project root
 
-// Define a simple route (optional, can be removed if all routes are modular)
+
+// Page route (defined directly in app.js)
+app.get('/store/:slug', storeController.getStoreProfilePage);
+
+// Basic route for home page
 app.get('/', (req, res) => {
-  res.send('API is running via app.js...');
+    // Check if index.html exists, otherwise send a simple message or 404
+    // For now, assume index.html is present in the root.
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Use Routes
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/stores', require('./routes/stores'));
+app.use('/api/stores', require('./routes/stores')); // This router should only contain API endpoints
 app.use('/api/deals', require('./routes/deals'));
 
 // Custom Error Handling Middleware (should be after all routes)

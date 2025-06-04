@@ -1,5 +1,17 @@
 const Store = require('../models/Store');
 const User = require('../models/User'); // Needed to associate store with user
+const Deal = require('../models/Deal');
+
+// Simple slugify function (can be placed here or imported)
+function slugify(text) {
+  if (!text) return '';
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+}
 
 // @desc    Create a new store
 // @route   POST /api/stores
@@ -7,13 +19,30 @@ const User = require('../models/User'); // Needed to associate store with user
 exports.createStore = async (req, res) => {
     try {
         const { storeName, address, latitude, longitude, contactInfo, openingHours, logoURL } = req.body;
+
+        if (!storeName) { // Should be caught by model validation, but good to check
+            return res.status(400).json({ success: false, error: 'Store name is required to generate a slug.' });
+        }
+        const slug = slugify(storeName);
+        // Potentially add a check here if slug is empty after slugify, though model will catch required
+        if (!slug) {
+             // This case should ideally not happen if storeName is valid
+            return res.status(400).json({ success: false, error: 'Could not generate a valid slug from the store name.' });
+        }
+
+
         // req.user.id is available from authMiddleware
         const store = new Store({
             user: req.user.id,
             storeName,
+            slug, // Add the generated slug
             address,
-            latitude,
-            longitude,
+            // For location, ensure it's derived from latitude and longitude correctly
+            // Assuming latitude and longitude are provided and are valid numbers
+            location: {
+                type: 'Point',
+                coordinates: [parseFloat(longitude), parseFloat(latitude)]
+            },
             contactInfo,
             openingHours,
             logoURL
@@ -23,10 +52,50 @@ exports.createStore = async (req, res) => {
         res.status(201).json({ success: true, data: store });
     } catch (error) {
         console.error(error);
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.slug) { // Handle duplicate slug error
+            return res.status(400).json({ success: false, error: 'Store name or slug already exists. Please choose a different name.' });
+        }
         if (error.name === 'ValidationError') {
             return res.status(400).json({ success: false, error: error.message });
         }
         res.status(500).json({ success: false, error: 'Server Error' });
+    }
+};
+
+// @desc    Display single store profile page
+// @route   GET /store/:slug
+// @access  Public
+exports.getStoreProfilePage = async (req, res) => {
+    try {
+        const storeSlug = req.params.slug;
+        const store = await Store.findOne({ slug: storeSlug }); // .populate('user', 'name'); // Optional: if user info is needed on store page
+
+        if (!store) {
+            // Option 1: Send 404 status and a simple message (or JSON)
+            return res.status(404).send('Store not found');
+            // Option 2: Render a 404.ejs page if you have one
+            // return res.status(404).render('404', { title: 'Page Not Found' });
+        }
+
+        const deals = await Deal.find({
+            store: store._id,
+            isActive: true,
+            quantityAvailable: { $gt: 0 }
+        }).sort({ bestBeforeDate: 1 }); // Optional: sort deals, e.g., by expiry
+
+        res.render('store-profile', { // Assumes 'store-profile.ejs' is in the 'views' directory
+            store: store,
+            deals: deals,
+            title: `${store.storeName} Profile` // Optional: pass a title to the template
+        });
+
+    } catch (error) {
+        console.error('Error in getStoreProfilePage:', error);
+        // Handle different types of errors if necessary
+        if (error.kind === 'ObjectId' && error.path === '_id') { // Unlikely here as we query by slug
+             return res.status(404).send('Invalid store identifier format.');
+        }
+        res.status(500).send('Server Error');
     }
 };
 

@@ -214,6 +214,7 @@ exports.getDeals = async (req, res) => {
                 store: { // Renaming storeInfo to store for consistency
                     _id: '$storeInfo._id',
                     storeName: '$storeInfo.storeName',
+                    slug: '$storeInfo.slug', // <<< ADD THIS LINE
                     address: '$storeInfo.address',
                     location: '$storeInfo.location', // Crucial for JS distance calculation
                     contactInfo: '$storeInfo.contactInfo',

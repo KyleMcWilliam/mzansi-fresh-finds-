@@ -128,10 +128,21 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
             distanceHTML = `<p class="distance"><i class="fas fa-map-marker-alt"></i> ${deal.distanceInKm.toFixed(1)} km away</p>`;
         }
 
-        // Store name from deal.store.storeName (populated by backend)
+        // Store name and link
         const storeName = (deal.store && deal.store.storeName) ? deal.store.storeName : 'Unknown Store';
+        let storeNameHTML;
+        if (deal.store && deal.store.slug) {
+            // Ensure deal.store.slug is properly escaped if it could contain special characters,
+            // though slugs are usually simple. For href, direct usage is generally fine.
+            storeNameHTML = `
+                <a href="/store/${deal.store.slug}" class="store-profile-link" title="View ${storeName} profile">
+                    <i class="fas fa-store-alt" aria-hidden="true"></i> ${storeName}
+                </a>`;
+        } else {
+            storeNameHTML = `<i class="fas fa-store-alt" aria-hidden="true"></i> ${storeName}`;
+        }
 
-        // Store Location
+        // Store Location (remains the same)
         const storeAddress = (deal.store && deal.store.address) ? deal.store.address : 'Address not available';
         const storeLocationHTML = `<p class="store-location" title="Store Address: ${storeAddress}"><i class="fas fa-map-marker-alt"></i> ${storeAddress}</p>`;
 
@@ -151,9 +162,7 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
             </div>
             <div class="deal-card-content">
                 <h3>${deal.itemName}</h3>
-                <p class="business-name" title="Store: ${storeName}">
-                    <i class="fas fa-store-alt" aria-hidden="true"></i> ${storeName}
-                </p>
+                <p class="business-name" title="Store: ${storeName}">${storeNameHTML}</p>
                 ${storeLocationHTML}
                 ${distanceHTML}
                 <div class="price-container">

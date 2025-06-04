@@ -14,7 +14,7 @@
 .filters-sort-section {
     background-color: var(--bg-page);
     padding: var(--space-lg);
-    margin-bottom: 20px; /* Or var(--space-lg) */
+    margin-bottom: var(--space-lg); /* Or var(--space-lg) */
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color);
     display: flex;
@@ -86,7 +86,7 @@
 #product-listing {
     display: grid;
     /* Aligned with #deals-container from style.css */
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: var(--space-lg); /* Assuming --space-lg is globally available from style.css */
     margin-top: var(--space-lg);
 }

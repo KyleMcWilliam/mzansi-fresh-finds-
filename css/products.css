@@ -142,3 +142,9 @@
         width: 100%;
     }
 }
+
+/* Adjust header padding for product pages to make it more compact */
+.site-header {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-lg);
+}

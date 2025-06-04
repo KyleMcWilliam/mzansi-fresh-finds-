@@ -11,6 +11,12 @@ const StoreSchema = new mongoose.Schema({
         required: [true, 'Store name is required'],
         trim: true
     },
+    slug: { // New field
+        type: String,
+        required: [true, 'Store slug is required'],
+        unique: true,
+        trim: true
+    },
     address: {
         type: String,
         required: [true, 'Address is required']
@@ -53,5 +59,7 @@ const StoreSchema = new mongoose.Schema({
 
 // Add index for geospatial queries
 StoreSchema.index({ location: '2dsphere' });
+// Add index for slug
+StoreSchema.index({ slug: 1 });
 
 module.exports = mongoose.model('Store', StoreSchema);

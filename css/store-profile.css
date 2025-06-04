@@ -7,19 +7,6 @@
     padding: 20px;
 }
 
-.site-header { /* Assuming similar header structure */
-    background-color: #f8f8f8;
-    padding: 20px 0;
-    border-bottom: 1px solid #eee;
-    text-align: center; /* Center title if no complex nav */
-}
-
-.site-header h1 {
-    margin: 0;
-    font-size: 2em;
-    color: #333;
-}
-
 #main-content {
     padding-top: 20px;
     padding-bottom: 20px;

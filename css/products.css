@@ -1,5 +1,15 @@
 /* Styles for products.html - Product Listing Page */
 
+.page-title-container {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-lg); /* Or margin-bottom */
+    text-align: center; /* Optional: if title should be centered */
+}
+/* Ensure h2 inside this container has appropriate margins if needed, */
+/* or rely on global h2 styling. Global h2 has margin-bottom: var(--space-md); */
+/* which should be fine. */
+
+
 /* Filters and Sort section specific to products.html */
 .filters-sort-section {
     background-color: var(--bg-page);

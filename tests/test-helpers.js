@@ -1,83 +1,107 @@
-// tests/test-helpers.js
-// Very simple test helpers
+const mongoose = require('mongoose');
+const User = require('../models/User');
+const Store = require('../models/Store');
+const Deal = require('../models/Deal');
+const config = require('../config/config'); // For mongoURI
+const supertest = require('supertest');
+const app = require('../app'); // Assuming your Express app is exported from app.js or server.js
 
-let testsRun = 0;
-let testsPassed = 0;
-const testResults = [];
+const request = supertest(app);
 
-function assertEquals(actual, expected, message) {
-    testsRun++;
-    if (actual === expected) {
-        testsPassed++;
-        testResults.push({ name: message, pass: true });
-        console.log(`%cPASS: ${message}`, 'color: green;');
-    } else {
-        testResults.push({ name: message, pass: false, expected: expected, actual: actual });
-        console.error(`FAIL: ${message}`);
-        console.error(`  Expected: ${expected}`);
-        console.error(`  Actual:   ${actual}`);
-    }
-}
-
-function assert(condition, message) {
-    testsRun++;
-    if (condition) {
-        testsPassed++;
-        testResults.push({ name: message, pass: true });
-        console.log(`%cPASS: ${message}`, 'color: green;');
-    } else {
-        testResults.push({ name: message, pass: false, expected: true, actual: condition });
-        console.error(`FAIL: ${message}`);
-        console.error(`  Expected condition to be true, but got false.`);
-    }
-}
-
-function summarizeTests() {
-    console.log("\n--- Test Summary ---");
-    testResults.forEach(result => {
-        if (result.pass) {
-            console.log(`%c✔ ${result.name}`, 'color: green;');
-        } else {
-            console.log(`%c✘ ${result.name} (Expected: ${result.expected}, Got: ${result.actual})`, 'color: red;');
-        }
-    });
-    console.log(`
-${testsPassed} of ${testsRun} tests passed.`);
-
-    // Optional: Display summary on the page if an element with id "testSummary" exists
-    const summaryElement = document.getElementById('testSummary');
-    if (summaryElement) {
-        summaryElement.innerHTML = `<h3>Test Results:</h3>`;
-        const list = document.createElement('ul');
-        testResults.forEach(result => {
-            const item = document.createElement('li');
-            item.textContent = `${result.pass ? '✔' : '✘'} ${result.name}`;
-            item.style.color = result.pass ? 'green' : 'red';
-            if (!result.pass) {
-                item.textContent += ` (Expected: ${result.expected}, Got: ${result.actual})`;
-            }
-            list.appendChild(item);
+// Function to connect to the database before tests
+const connectDB = async () => {
+    try {
+        await mongoose.connect(config.mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
         });
-        summaryElement.appendChild(list);
-        const overall = document.createElement('p');
-        overall.textContent = `${testsPassed} of ${testsRun} tests passed.`;
-        summaryElement.appendChild(overall);
-        if (testsPassed === testsRun) {
-            summaryElement.style.border = '2px solid green';
-        } else {
-            summaryElement.style.border = '2px solid red';
-        }
-        summaryElement.style.padding = '10px';
-        summaryElement.style.backgroundColor = '#f9f9f9';
+        // console.log('Test MongoDB Connected...');
+    } catch (err) {
+        console.error('Test MongoDB connection error:', err.message);
+        process.exit(1);
     }
+};
 
-    if (testsPassed !== testsRun) {
-        console.error(`${testsRun - testsPassed} tests failed.`);
-    } else {
-        console.log("%cAll tests passed!", "color: green; font-weight: bold;");
+// Function to disconnect from the database after tests
+const disconnectDB = async () => {
+    try {
+        await mongoose.connection.dropDatabase();
+        await mongoose.disconnect();
+        // console.log('Test MongoDB Disconnected and Dropped.');
+    } catch (err) {
+        console.error('Test MongoDB disconnection error:', err.message);
+        // process.exit(1); // Don't exit process during teardown, allow Jest to finish
     }
-}
+};
 
-// Automatically summarize when the window loads, if this script is the last one.
-// Or, test files can call summarizeTests() explicitly.
-// window.addEventListener('load', summarizeTests); // Better to call explicitly from test runner
+// Function to clear all collections in the test database
+const clearDB = async () => {
+    const collections = mongoose.connection.collections;
+    for (const key in collections) {
+        const collection = collections[key];
+        await collection.deleteMany({});
+    }
+};
+
+// Function to create a user with a specific role
+const createUser = async (userData) => {
+    const user = new User({
+        name: userData.name || 'Test User',
+        email: userData.email,
+        password: userData.password || 'password123', // Password will be hashed by pre-save hook
+        role: userData.role || 'consumer', // Default to 'consumer' if not specified
+    });
+    await user.save();
+    return user;
+};
+
+// Function to log in a user and get an auth token
+const loginUser = async (email, password)_ => {
+    const response = await request
+        .post('/api/auth/login')
+        .send({ email, password });
+
+    if (response.body.token) {
+        return response.body.token;
+    }
+    // console.error('Login failed in test helper:', response.body);
+    return null; // Or throw an error
+};
+
+// Helper to create a store
+const createStore = async (userId, storeData) => {
+    const store = new Store({
+        user: userId,
+        storeName: storeData.storeName || 'Test Store',
+        address: storeData.address || '123 Test St',
+        latitude: storeData.latitude || 0,
+        longitude: storeData.longitude || 0,
+    });
+    await store.save();
+    return store;
+};
+
+// Helper to create a deal
+const createDeal = async (userId, storeId, dealData) => {
+    const deal = new Deal({
+        user: userId,
+        store: storeId,
+        itemName: dealData.itemName || 'Test Item',
+        originalPrice: dealData.originalPrice || 100,
+        discountedPrice: dealData.discountedPrice || 50,
+    });
+    await deal.save();
+    return deal;
+};
+
+
+module.exports = {
+    connectDB,
+    disconnectDB,
+    clearDB,
+    createUser,
+    loginUser,
+    createStore,
+    createDeal,
+    request, // Export supertest instance for direct use in tests
+};

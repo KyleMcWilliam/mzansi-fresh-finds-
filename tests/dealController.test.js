@@ -216,3 +216,124 @@ describe('getDeals Controller', () => {
   });
 
 });
+
+// Integration tests for Deal CRUD operations with Admin privileges
+const {
+  connectDB,
+  disconnectDB,
+  clearDB,
+  createUser,
+  loginUser,
+  createStore,
+  createDeal: createDealHelper, // Renamed to avoid conflict with controller functions if any were imported directly
+  request,
+} = require('./test-helpers');
+
+describe('Deal Controller Integration Tests (Admin Privileges)', () => {
+  let adminUser, regularUser, storeOwnerUser;
+  let adminToken, regularUserToken, storeOwnerToken;
+  let testStoreByRegularUser, testStoreByStoreOwner;
+  let dealInRegularUserStore;
+
+  beforeAll(async () => {
+    await connectDB();
+  });
+
+  afterAll(async () => {
+    await disconnectDB();
+  });
+
+  beforeEach(async () => {
+    await clearDB();
+
+    // Create users
+    adminUser = await createUser({ email: 'admin@example.com', name: 'Admin User', role: 'admin' });
+    storeOwnerUser = await createUser({ email: 'owner@example.com', name: 'Store Owner', role: 'store_owner' });
+    // regularUser = await createUser({ email: 'consumer@example.com', name: 'Regular Consumer', role: 'consumer' }); // If needed
+
+    // Log in users
+    adminToken = await loginUser(adminUser.email, 'password123');
+    storeOwnerToken = await loginUser(storeOwnerUser.email, 'password123');
+    // regularUserToken = await loginUser(regularUser.email, 'password123');
+
+    // Create stores
+    testStoreByStoreOwner = await createStore(storeOwnerUser._id, { storeName: "Owner's Store" });
+
+    // Create a deal by storeOwnerUser in their store
+    dealInRegularUserStore = await createDealHelper(storeOwnerUser._id, testStoreByStoreOwner._id, {
+      itemName: 'Initial Deal by Owner',
+      originalPrice: 100,
+      discountedPrice: 80,
+    });
+  });
+
+  describe('Admin Creating Deals (/api/deals)', () => {
+    test('Admin should create a deal for another user\'s store', async () => {
+      const dealData = {
+        storeId: testStoreByStoreOwner._id.toString(),
+        itemName: 'Admin Special Deal',
+        description: 'Created by admin for another store',
+        category: 'Electronics',
+        originalPrice: 200,
+        discountedPrice: 150,
+        quantityAvailable: 10,
+      };
+
+      const res = await request
+        .post('/api/deals')
+        .set('x-auth-token', adminToken)
+        .send(dealData);
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.itemName).toBe(dealData.itemName);
+      expect(res.body.data.store.toString()).toBe(testStoreByStoreOwner._id.toString());
+      expect(res.body.data.user.toString()).toBe(adminUser._id.toString()); // Deal user should be admin
+    });
+  });
+
+  describe('Admin Updating Deals (/api/deals/:dealId)', () => {
+    test('Admin should update a deal in another user\'s store', async () => {
+      const updatedData = {
+        itemName: 'Updated Deal Name by Admin',
+        discountedPrice: 70,
+      };
+
+      const res = await request
+        .put(`/api/deals/${dealInRegularUserStore._id.toString()}`)
+        .set('x-auth-token', adminToken)
+        .send(updatedData);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.itemName).toBe(updatedData.itemName);
+      expect(res.body.data.discountedPrice).toBe(updatedData.discountedPrice);
+      // Ensure the original deal creator (storeOwnerUser) is still the user associated with the deal's store
+      // The deal model itself has a 'user' field (creator of the deal) and a 'store' field (which has its own user - the store owner)
+      // The deal's user field might change if an admin updates it explicitly, but here we test if admin can update a deal they didn't create.
+      // The deal's 'user' field should remain storeOwnerUser._id unless admin explicitly changes it (which is not part of this test)
+      // Rereading dealController update, it does not change deal.user
+      const dealInDb = await mongoose.model('Deal').findById(dealInRegularUserStore._id);
+      expect(dealInDb.user.toString()).toBe(storeOwnerUser._id.toString());
+    });
+  });
+
+  describe('Admin Deleting Deals (/api/deals/:dealId)', () => {
+    test('Admin should delete a deal from another user\'s store', async () => {
+      const res = await request
+        .delete(`/api/deals/${dealInRegularUserStore._id.toString()}`)
+        .set('x-auth-token', adminToken);
+
+      expect(res.statusCode).toBe(200); // Or 204 if no content is returned
+      expect(res.body.success).toBe(true); // Assuming delete returns { success: true, data: { message: "Deal removed" } }
+
+      // Verify the deal is actually deleted
+      const dealInDb = await mongoose.model('Deal').findById(dealInRegularUserStore._id);
+      expect(dealInDb).toBeNull();
+    });
+  });
+
+  // TODO: Add sanity checks for non-admin users if not already covered by other test files
+  // e.g., store owner failing to update/delete deals in a store they don't own.
+  // e.g., store owner successfully managing deals in their own store.
+});

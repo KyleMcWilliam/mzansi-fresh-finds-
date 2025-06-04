@@ -13,9 +13,15 @@ exports.createDeal = async (req, res) => {
         if (!store) {
             return res.status(404).json({ success: false, error: 'Store not found' });
         }
-        if (store.user.toString() !== req.user.id) {
-            return res.status(403).json({ success: false, error: 'User not authorized to add deals to this store' });
+
+        // Admin check: Admins can create deals for any store, others must own the store.
+        if (req.user.role !== 'admin') {
+            if (store.user.toString() !== req.user.id) {
+                return res.status(403).json({ success: false, error: 'User not authorized to add deals to this store' });
+            }
         }
+        // If admin, storeId is still required from req.body, and store ownership check is bypassed.
+        // The deal's 'user' field will be the admin's ID.
 
         const deal = new Deal({
             store: storeId,
@@ -287,10 +293,13 @@ exports.updateDeal = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Deal not found' });
         }
 
-        // Check if the authenticated user owns the store associated with the deal
-        if (!deal.store || deal.store.user.toString() !== req.user.id) {
-            return res.status(403).json({ success: false, error: 'User not authorized to update this deal' });
+        // Admin check: Admins can update any deal, others must own the store associated with the deal.
+        if (req.user.role !== 'admin') {
+            if (!deal.store || deal.store.user.toString() !== req.user.id) {
+                return res.status(403).json({ success: false, error: 'User not authorized to update this deal' });
+            }
         }
+        // If admin, ownership check is bypassed.
 
         // Fields that can be updated
         const { itemName, description, category, originalPrice, discountedPrice, quantityAvailable, bestBeforeDate, pickupInstructions, imageURL, isActive } = req.body;
@@ -351,10 +360,13 @@ exports.deleteDeal = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Deal not found' });
         }
 
-        // Check if the authenticated user owns the store associated with the deal
-        if (!deal.store || deal.store.user.toString() !== req.user.id) {
-            return res.status(403).json({ success: false, error: 'User not authorized to delete this deal' });
+        // Admin check: Admins can delete any deal, others must own the store associated with the deal.
+        if (req.user.role !== 'admin') {
+            if (!deal.store || deal.store.user.toString() !== req.user.id) {
+                return res.status(403).json({ success: false, error: 'User not authorized to delete this deal' });
+            }
         }
+        // If admin, ownership check is bypassed.
 
         await deal.remove(); // or Deal.findByIdAndDelete(req.params.dealId);
 

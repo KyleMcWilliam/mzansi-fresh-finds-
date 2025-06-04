@@ -73,10 +73,13 @@ exports.updateStore = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Store not found' });
         }
 
-        // Check if the logged-in user is the owner of the store
-        if (store.user.toString() !== req.user.id) {
-            return res.status(401).json({ success: false, error: 'Not authorized to update this store' });
+        // Admin check: Admins can update any store, others must own the store.
+        if (req.user.role !== 'admin') {
+            if (store.user.toString() !== req.user.id) {
+                return res.status(401).json({ success: false, error: 'Not authorized to update this store' });
+            }
         }
+        // If admin, ownership check is bypassed.
 
         // Fields to update
         const { storeName, address, latitude, longitude, contactInfo, openingHours, logoURL } = req.body;
@@ -116,10 +119,13 @@ exports.deleteStore = async (req, res) => {
             return res.status(404).json({ success: false, error: 'Store not found' });
         }
 
-        // Check if the logged-in user is the owner of the store
-        if (store.user.toString() !== req.user.id) {
-            return res.status(401).json({ success: false, error: 'Not authorized to delete this store' });
+        // Admin check: Admins can delete any store, others must own the store.
+        if (req.user.role !== 'admin') {
+            if (store.user.toString() !== req.user.id) {
+                return res.status(401).json({ success: false, error: 'Not authorized to delete this store' });
+            }
         }
+        // If admin, ownership check is bypassed.
 
         // Optional: Add logic here to handle deals associated with the store.
         // For now, we'll just delete the store.

@@ -478,6 +478,35 @@ a:focus-visible {
     box-shadow: var(--shadow-inset);
 }
 
+/* Styles for new elements in Deal Card */
+.deal-card .store-location,
+.deal-card .quantity-available {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs); /* Smaller gap for icon and text */
+    font-size: 0.9em;
+    line-height: 1.5; /* Ensure good line height */
+}
+
+.deal-card .store-location {
+    color: var(--neutral-medium); /* Slightly softer color */
+    margin-bottom: var(--space-xs); /* Reduced margin */
+}
+.deal-card .store-location i {
+    color: var(--primary-green); /* Icon color matches theme */
+    font-size: 1em; /* Match text size or slightly larger */
+}
+
+.deal-card .quantity-available {
+    color: var(--neutral-dark); /* Darker for emphasis */
+    margin-bottom: var(--space-sm); /* Standard small margin */
+}
+.deal-card .quantity-available i {
+    color: var(--primary-green);
+    font-size: 1em;
+}
+
+
 /* ============================================= */
 /* Shared Navigation Styles                      */
 /* ============================================= */
@@ -1038,6 +1067,72 @@ a:focus-visible {
     word-break: break-word;
 }
 /* WhatsApp button styling remains the same */
+
+/* Styles for new elements in Deal Modal */
+.modal-address, /* Applied to #modalStoreAddress */
+.modal-quantity, /* Applied to #modalQuantityAvailable */
+.modal-pickup-instructions /* Applied to #modalPickupInstructions */ {
+    display: flex;
+    align-items: flex-start; /* Align icon with first line of text */
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md); /* Consistent margin */
+    font-size: 1em; /* Standard modal text size */
+    line-height: 1.6;
+}
+
+.modal-address {
+    color: var(--neutral-dark);
+}
+.modal-address i {
+    color: var(--primary-green);
+    margin-top: 3px; /* Align icon slightly better with text */
+}
+
+.modal-quantity {
+    color: var(--neutral-darkest);
+    font-weight: 500; /* Slightly bolder for quantity */
+}
+.modal-quantity i {
+    color: var(--primary-green);
+    margin-top: 3px;
+}
+
+.modal-pickup-instructions {
+    color: var(--neutral-medium);
+    font-style: italic; /* As per suggestion */
+    margin-top: var(--space-lg); /* More space before pickup */
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color); /* Separator for this section */
+}
+/* Icon for pickup instructions, if you add one later */
+/* .modal-pickup-instructions i {
+    color: var(--primary-green);
+    margin-top: 3px;
+} */
+
+/* Heading for "How to Get This Deal" section */
+#dealModal .modal-details h4 { /* Specific to dealModal */
+    margin-top: var(--space-xl); /* More top margin for section heading */
+    margin-bottom: var(--space-sm);
+    font-size: 1.15em; /* Slightly larger than regular text */
+    color: var(--neutral-darkest);
+    font-weight: 700;
+}
+
+/* "View on Map" button */
+#modalMapViewLink.map-button { /* Already has .button-style */
+    display: inline-block; /* Ensure it behaves like a button */
+    margin-top: var(--space-sm); /* Space above the map button */
+    margin-bottom: var(--space-lg); /* Space after the map button */
+    /* background-color and color are inherited from .button-style */
+    /* padding is inherited */
+    /* text-decoration is inherited */
+    /* border-radius is inherited */
+}
+#modalMapViewLink.map-button i {
+    margin-right: var(--space-sm); /* Space between icon and text */
+}
+
 
 /* ==========================================================================
    Add/Edit Listing Modal (#listingModal)

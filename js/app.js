@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initDealsPage();
     }
     // Initialize modal for both pages if a common modal structure is used
-    initModal(id => allDeals.find(deal => deal._id === id)); // Pass a function to find deal in current allDeals
+    initModal(); // Parameter removed as it's no longer used in modal.js
 });
 
 /**

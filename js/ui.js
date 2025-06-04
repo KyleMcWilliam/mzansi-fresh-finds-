@@ -130,7 +130,18 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
 
         // Store name from deal.store.storeName (populated by backend)
         const storeName = (deal.store && deal.store.storeName) ? deal.store.storeName : 'Unknown Store';
-        const storeLocation = (deal.store && deal.store.address) ? deal.store.address : ''; // Or a more specific location field if available
+
+        // Store Location
+        const storeAddress = (deal.store && deal.store.address) ? deal.store.address : 'Address not available';
+        const storeLocationHTML = `<p class="store-location" title="Store Address: ${storeAddress}"><i class="fas fa-map-marker-alt"></i> ${storeAddress}</p>`;
+
+        // Quantity Available
+        let quantityAvailableHTML = '';
+        if (deal.quantityAvailable !== undefined && deal.quantityAvailable !== null) {
+            quantityAvailableHTML = `<p class="quantity-available"><i class="fas fa-cubes"></i> Quantity: ${deal.quantityAvailable}</p>`;
+        } else {
+            quantityAvailableHTML = `<p class="quantity-available"><i class="fas fa-cubes"></i> Quantity: Not specified</p>`;
+        }
 
         dealCard.innerHTML = `
             <div class="deal-card-image-container">
@@ -140,9 +151,10 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
             </div>
             <div class="deal-card-content">
                 <h3>${deal.itemName}</h3>
-                <p class="business-name" title="${storeName} - ${storeLocation}">
+                <p class="business-name" title="Store: ${storeName}">
                     <i class="fas fa-store-alt" aria-hidden="true"></i> ${storeName}
                 </p>
+                ${storeLocationHTML}
                 ${distanceHTML}
                 <div class="price-container">
                     <span class="price">R${deal.discountedPrice.toFixed(2)}</span>
@@ -152,6 +164,7 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
                     <i class="far fa-calendar-alt" aria-hidden="true"></i> ${formatDate(deal.bestBeforeDate)}
                 </p>
                 <p class="description">${deal.description || ''}</p>
+                ${quantityAvailableHTML}
                 <button class="view-deal-btn" data-deal-id="${deal._id}" aria-label="View details for ${deal.itemName}">
                     <i class="fas fa-eye" aria-hidden="true"></i> View Deal
                 </button>
@@ -164,13 +177,14 @@ export function renderDeals(dealsToRender, containerElement, currentSearchTerm =
     // This assumes that viewDealHandler is relevant for these cards as well (e.g., opens a modal)
     // If not, this part can be omitted for products.html or use a different handler.
     if (viewDealHandler) { // Check if viewDealHandler is set (it's set by initUI for deals.html)
-        attachViewDealListeners(containerElement);
+        attachViewDealListeners(containerElement); // Pass containerElement
     }
 }
 
-function attachViewDealListeners(containerElement) { // Added containerElement
+function attachViewDealListeners(containerElement) {
     if (!containerElement || !viewDealHandler) return;
     containerElement.querySelectorAll('.view-deal-btn').forEach(button => {
+        // To prevent multiple listeners if this function is called multiple times on the same container
         button.removeEventListener('click', handleViewDealButtonClick);
         button.addEventListener('click', handleViewDealButtonClick);
     });
@@ -180,6 +194,7 @@ function handleViewDealButtonClick(event) {
     event.preventDefault();
     const dealId = event.currentTarget.dataset.dealId;
     if (dealId && viewDealHandler) {
+        // Pass the button itself if needed by the handler (e.g., for modal positioning)
         viewDealHandler(dealId, event.currentTarget);
     }
 }

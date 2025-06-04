@@ -119,18 +119,26 @@
                 </div>
                 <div class="modal-details">
                     <h3 id="modalTitle">Deal Title</h3>
-                    <p class="modal-business" id="modalBusiness"><i class="fas fa-store-alt"></i> Business Name - Location</p>
+                    <p class="modal-business" id="modalBusiness"><i class="fas fa-store-alt"></i> Business Name</p>
+                    <p id="modalStoreAddress" class="modal-address"><i class="fas fa-map-marker-alt"></i> Store Address</p>
                     <div class="modal-price-container">
                         <span class="modal-price" id="modalPrice">R0.00</span>
                         <span class="modal-original-price" id="modalOriginalPrice">R0.00</span>
                     </div>
                     <p class="modal-best-before" id="modalBestBefore"><i class="far fa-calendar-alt"></i> Best Before: Date</p>
+                    <p id="modalQuantityAvailable" class="modal-quantity"><i class="fas fa-cubes"></i> Quantity: N/A</p>
                     <p id="modalDescription" class="modal-description-text">Full description of the deal will appear here.</p>
+
+                    <h4>How to Get This Deal:</h4>
+                    <p id="modalPickupInstructions" class="modal-pickup-instructions">Pickup instructions will appear here.</p>
+                    <a id="modalMapViewLink" href="#" target="_blank" rel="noopener noreferrer" class="button-style map-button" style="display: none;">
+                        <i class="fas fa-map-marked-alt"></i> View on Map
+                    </a>
+
+                    <!-- Optional: Keep or revise existing contact info section -->
                     <div class="modal-contact-info">
-                        <h4>Contact Seller:</h4>
+                        <h4>Contact Seller (Optional):</h4>
                         <p id="modalContact">Contact details will appear here.</p>
-                        <!-- Dynamic link example (JS needs to populate href) -->
-                        <!-- <a href="#" id="modalWhatsAppLink" class="whatsapp-button" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> Chat on WhatsApp</a> -->
                     </div>
                 </div>
             </div>

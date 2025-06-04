@@ -329,6 +329,11 @@ a:focus-visible {
     background-color: var(--bg-card); /* Changed from --white to --bg-card */
 }
 
+.filters input[type="text"]:hover,
+.filters select:hover {
+    border-color: var(--primary-green-light);
+}
+
 .clear-filters-btn {
     background-color: var(--neutral-lightest);
     color: var(--neutral-dark);
@@ -726,6 +731,7 @@ a:focus-visible {
         border-bottom: 1px solid var(--neutral-darkest); /* Separator lines */
         color: var(--white-text-for-dark-bg);
         font-weight: 500; /* Slightly less bold than desktop */
+        transition: color var(--transition-std), background-color var(--transition-std); /* Added transition */
     }
     .main-nav ul li:last-child a {
         border-bottom: none;

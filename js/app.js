@@ -16,6 +16,7 @@ const DEFAULT_ZOOM = 10;
 import { fetchDeals } from './deals.js'; // getFilteredAndSortedDeals, getDealById removed from imports
 import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState } from './ui.js';
 import { populateModalWithDeal, openModal, initModal } from './modal.js'; // Modal might still be used on products.html
+import { initMobileNavigation } from './navigation.js';
 
 // DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,6 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Initialize modal for both pages if a common modal structure is used
     initModal(); // Parameter removed as it's no longer used in modal.js
+    initMobileNavigation(); // Initialize hamburger menu functionality
+
+    // Update copyright year
+    const yearSpan = document.getElementById('currentYear');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
 });
 
 /**

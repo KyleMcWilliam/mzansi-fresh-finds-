@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Products - FarmFresh Marketplace</title>
+    <title>Products - Mzansi Fresh Finds</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/products.css">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 <body>
-    <header>
-        <!-- Placeholder for navigation - will be addressed in a later step -->
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="products.html">Products</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="contact.html">Contact</a></li>
-            </ul>
-        </nav>
+    <header class="site-header">
+        <div class="container">
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <span class="sr-only">Menu</span>
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <!-- Standard Navigation -->
+            <nav class="main-nav" aria-label="Main navigation">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="business-login.html">Business Portal</a></li>
+                </ul>
+            </nav>
+            <!-- Optional Logo Spot -->
+            <!-- <img src="/images/logo.png" alt="Mzansi Fresh Finds Logo" class="site-logo"> -->
+            <h1><a href="index.html" style="color: inherit; text-decoration: none;">Mzansi Fresh Finds</a></h1>
+            <p>Snag amazing deals, save money & fight food waste!</p>
+        </div>
     </header>
     <main>
         <h1>Our Products</h1>
@@ -77,8 +88,20 @@
             <div id="map-view" style="height: 400px; margin-bottom: 20px;"></div>
         </section>
     </main>
-    <footer>
-        <p>&copy; 2024 FarmFresh Marketplace</p>
+    <footer class="site-footer">
+        <div class="container">
+            <p>© <span id="currentYear"></span> Mzansi Fresh Finds. Fighting food waste, one deal at a time.</p>
+            <nav class="footer-nav" aria-label="Footer navigation">
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="business-login.html">Business Portal</a></li>
+                </ul>
+            </nav>
+        </div>
     </footer>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

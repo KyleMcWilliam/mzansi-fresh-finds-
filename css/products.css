@@ -2,56 +2,75 @@
 
 /* Filters and Sort section specific to products.html */
 .filters-sort-section {
-    background-color: #e9f5e9; /* Light green */
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
+    background-color: var(--bg-page);
+    padding: var(--space-lg);
+    margin-bottom: 20px; /* Or var(--space-lg) */
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
     display: flex;
     flex-wrap: wrap; /* Allow items to wrap on smaller screens */
-    gap: 20px; /* Space between filter/sort groups */
-    align-items: flex-end; /* Align items to the bottom for a cleaner look */
+    gap: var(--space-lg); /* Space between filter/sort groups */
+    align-items: stretch; /* Align items to the bottom for a cleaner look */
 }
 
 .filters-sort-section h2 {
     width: 100%; /* Make headings take full width */
     margin-top: 0; /* Remove default top margin for h2 */
-    margin-bottom: 10px;
-    color: #3a5a40; /* Dark green */
-    font-size: 1.2em;
+    margin-bottom: var(--space-sm);
+    color: var(--neutral-darkest);
+    /* font-size will be inherited from global h2 styles */
 }
 
 .filters-sort-section div { /* Container for label + input */
     display: flex;
     flex-direction: column; /* Stack label and input vertically */
-    gap: 5px; /* Space between label and input */
+    gap: var(--space-xs); /* Space between label and input */
 }
 
 .filters-sort-section label {
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #555;
+    font-weight: bold; /* Consider if this is needed, base label styles might be sufficient */
+    font-size: 0.9em; /* Or inherit from base styles */
+    color: var(--neutral-dark);
 }
 
 .filters-sort-section select,
-.filters-sort-section input[type="text"],
-.filters-sort-section button {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9em;
+.filters-sort-section input[type="text"] {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: 0.95em; /* Consistent with other inputs */
+    background-color: var(--bg-card); /* Or var(--bg-page) */
 }
 
-.filters-sort-section button {
-    background-color: #588157; /* Medium green */
-    color: white;
-    cursor: pointer;
-    border: none;
-    align-self: flex-end; /* Align button itself to the end of its flex container if wrapped */
+/* Custom button styling removed, assuming .button-style will be used from style.css */
+
+/* Two-column layout for products page */
+.products-layout-container {
+    display: flex; /* Default to flex, direction column for mobile-first */
+    flex-direction: column;
+    gap: var(--space-lg); /* Gap for mobile stacking */
 }
 
-.filters-sort-section button:hover {
-    background-color: #3a5a40; /* Darker green */
+/* For wider screens */
+@media (min-width: 769px) {
+    .products-layout-container {
+        flex-direction: row; /* Row layout for desktop */
+        gap: var(--space-xl);
+        align-items: flex-start;
+    }
+
+    .products-layout-container .filters-sort-section {
+        flex: 0 0 300px;
+        /* position: sticky; */ /* Optional sticky sidebar */
+        /* top: var(--space-lg); */ /* Optional if sticky */
+    }
+
+    .products-layout-container .products-main-content {
+        flex: 1 1 auto;
+        min-width: 0; /* Prevents flexbox overflow issues */
+    }
 }
+
 
 /* Product Listing specific to products.html */
 #product-listing {
@@ -59,7 +78,11 @@
     /* Aligned with #deals-container from style.css */
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
     gap: var(--space-lg); /* Assuming --space-lg is globally available from style.css */
-    margin-top: 20px; /* Add some space above the product listing, can be var(--space-lg) too if desired */
+    margin-top: var(--space-lg);
+}
+
+#map-deals-section {
+    margin-top: var(--space-xl);
 }
 
 /* Styling for the new .product-category-display class */
@@ -92,3 +115,20 @@
    - .product-price (now .price within .price-container in .deal-card-content)
    - .product-description (now .description in .deal-card-content)
 */
+
+@media (max-width: 576px) {
+    .filters-sort-section > div { /* Target direct div children (filter groups) */
+        flex-basis: 100%; /* Make each filter group take full width */
+    }
+
+    .filters-sort-section .button-style { /* General rule for all buttons in this section on mobile */
+        width: 100%;
+        margin-top: var(--space-sm); /* Add some top margin for spacing */
+    }
+
+    /* Ensure select and input also take full width if not already */
+    .filters-sort-section select,
+    .filters-sort-section input[type="text"] {
+        width: 100%;
+    }
+}

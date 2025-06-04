@@ -90,6 +90,9 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* --- Accessibility Features --- */
@@ -377,6 +380,10 @@ a:focus-visible {
 /* ==========================================================================
    Deals Container & Cards
    ========================================================================== */
+main#main-content {
+    flex-grow: 1;
+}
+
 .deals-section { animation-fill-mode: both; }
 
 #deals-container {

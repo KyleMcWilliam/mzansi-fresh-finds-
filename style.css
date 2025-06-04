@@ -192,6 +192,32 @@ a:focus-visible {
 /* ==========================================================================
    Header
    ========================================================================== */
+.mobile-nav-toggle {
+    display: none; /* Hidden by default, shown in media query */
+    background: transparent;
+    border: 1px solid var(--white-text-for-dark-bg);
+    color: var(--white-text-for-dark-bg);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    position: absolute; /* Or use flexbox for ordering */
+    right: var(--space-lg);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1500; /* Ensure it's above other header content */
+}
+.mobile-nav-toggle .fa-times { /* Style for the close icon */
+    display: none;
+}
+/* When menu is open, show X and hide bars */
+.mobile-nav-open .mobile-nav-toggle .fa-bars {
+    display: none;
+}
+.mobile-nav-open .mobile-nav-toggle .fa-times {
+    display: inline-block; /* Or block if it's the only child */
+}
+
 .site-header {
     background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
     color: var(--white-text-for-dark-bg);
@@ -390,7 +416,7 @@ a:focus-visible {
 }
 
 .deal-card h3 {
-    margin-bottom: var(--space-xs); /* Less space */
+    margin-bottom: var(--space-sm); /* Less space */
     font-size: 1.25em; /* Adjusted */
     font-weight: 700;
     color: var(--neutral-darkest);
@@ -401,13 +427,13 @@ a:focus-visible {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    font-size: 0.85em; /* Slightly smaller */
+    font-size: 0.92em; /* Slightly smaller */
     margin-bottom: var(--space-sm); /* Less space */
 }
 .deal-card .business-name { color: var(--neutral-medium); }
-.deal-card .business-name i { color: var(--primary-green); font-size: 1.1em; }
+.deal-card .business-name i { color: var(--primary-green); font-size: 1.1em; margin-right: var(--space-xs); }
 .deal-card .best-before { color: var(--accent-orange); font-weight: 700; }
-.deal-card .best-before i { font-size: 1em; }
+.deal-card .best-before i { font-size: 1em; margin-right: var(--space-xs); }
 
 .deal-card .price-container {
     display: flex;
@@ -431,7 +457,7 @@ a:focus-visible {
 .deal-card .description {
     font-size: 0.95em; /* Slightly smaller description */
     color: var(--neutral-medium);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
     flex-grow: 1;
     line-height: 1.6;
 }
@@ -490,20 +516,52 @@ a:focus-visible {
 
 .deal-card .store-location {
     color: var(--neutral-medium); /* Slightly softer color */
-    margin-bottom: var(--space-xs); /* Reduced margin */
+    margin-bottom: var(--space-sm); /* Reduced margin */
 }
 .deal-card .store-location i {
     color: var(--primary-green); /* Icon color matches theme */
-    font-size: 1em; /* Match text size or slightly larger */
+    font-size: 1.1em; /* Match text size or slightly larger */
+    margin-right: var(--space-xs);
 }
 
 .deal-card .quantity-available {
     color: var(--neutral-dark); /* Darker for emphasis */
-    margin-bottom: var(--space-sm); /* Standard small margin */
+    margin-bottom: var(--space-md); /* Standard small margin */
 }
 .deal-card .quantity-available i {
     color: var(--primary-green);
-    font-size: 1em;
+    font-size: 1.1em;
+    margin-right: var(--space-xs);
+}
+
+.deal-card .distance {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.9em;
+    color: var(--neutral-medium);
+    margin-bottom: var(--space-sm);
+    line-height: 1.5;
+}
+.deal-card .distance i {
+    color: var(--primary-green);
+    font-size: 1.1em;
+    margin-right: var(--space-xs);
+}
+
+/* Discount Badge */
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--accent-yellow);
+    color: var(--neutral-darkest);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75em;
+    font-weight: 700;
+    z-index: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 
@@ -513,7 +571,7 @@ a:focus-visible {
 
 /* --- Header Navigation --- */
 .main-nav {
-    margin-bottom: 1em;
+    margin-bottom: 1em; /* This might need adjustment with absolute positioning */
 }
 
 .main-nav ul {
@@ -523,16 +581,16 @@ a:focus-visible {
     text-align: center;
 }
 
+/* Default Desktop main-nav styles */
 .main-nav ul li {
     display: inline-block;
     margin: 0 10px;
 }
-
 .main-nav ul li a {
     color: var(--white-text-for-dark-bg);
     text-decoration: none;
     font-weight: 600;
-    padding: 0.5em; /* Add some padding for better click targets */
+    padding: 0.5em;
     transition: color var(--transition-std), text-decoration-color var(--transition-std);
     border-radius: var(--border-radius-sm);
 }
@@ -546,6 +604,7 @@ a:focus-visible {
     outline-offset: 2px;
     text-decoration: none;
 }
+
 
 /* --- Footer Navigation --- */
 .footer-nav { /* This is the <nav> element */
@@ -592,13 +651,80 @@ a:focus-visible {
         /* font-size: 14px; */
     }
 
+    /* Mobile Header Adjustments */
     .site-header {
         padding: var(--space-md) 0; /* Further reduce padding */
+        /* position: relative; needed if .main-nav.mobile-nav-active is position:absolute relative to header */
+    }
+     .site-header .container {
+        display: flex; /* Enable flex for alignment */
+        align-items: center; /* Vertically align items */
+        justify-content: space-between; /* Push nav toggle to one side if not using absolute */
     }
     .site-header h1 {
         font-size: clamp(1.5em, 5.5vw, 2em); /* Adjust clamp for smaller header */
+        margin-bottom: 0; /* Adjust if h1 and p are also flex items */
+        /* flex-grow: 1; /* Allow h1 to take space if nav is part of flex */
     }
-    .site-header p {
+    .site-header h1 a { /* Ensure the link inside h1 behaves well */
+        display: inline-block;
+    }
+     .site-header p { /* Tagline */
+        display: none; /* Optionally hide tagline on very small screens or style differently */
+    }
+
+
+    .mobile-nav-toggle {
+        display: block; /* Show hamburger */
+        /* Order can be controlled with flexbox order property if needed */
+    }
+
+    .main-nav {
+        display: none; /* Hide nav by default on mobile */
+        order: 1; /* If .site-header .container is flex, ensure nav is ordered last or as needed */
+        width: 100%; /* Full width for dropdown */
+        background-color: var(--neutral-dark); /* Darker background for dropdown */
+        padding: var(--space-sm) 0;
+        box-shadow: var(--shadow-md);
+        position: absolute;
+        top: 100%; /* Position below the header */
+        left: 0;
+        right: 0;
+        z-index: 1000; /* Below toggle, but above main content */
+    }
+    .main-nav.mobile-nav-active {
+        display: flex;
+        flex-direction: column;
+    }
+    .main-nav ul {
+        flex-direction: column;
+        width: 100%;
+    }
+    .main-nav ul li {
+        display: block; /* Stack list items */
+        width: 100%;
+        margin: 0;
+        text-align: center; /* Center text for dropdown items */
+    }
+    .main-nav ul li a {
+        display: block; /* Make links full width for easy tapping */
+        padding: var(--space-md); /* Generous padding */
+        border-bottom: 1px solid var(--neutral-darkest); /* Separator lines */
+        color: var(--white-text-for-dark-bg);
+        font-weight: 500; /* Slightly less bold than desktop */
+    }
+    .main-nav ul li:last-child a {
+        border-bottom: none;
+    }
+    .main-nav ul li a:hover,
+    .main-nav ul li a:focus {
+        background-color: var(--primary-green);
+        color: var(--primary-green-accessible-text);
+        text-decoration: none;
+    }
+
+
+    .site-header p { /* This is the tagline, already hidden or adjusted above */
         font-size: clamp(0.85em, 2.3vw, 0.95em);
     }
 
@@ -1618,7 +1744,69 @@ a:focus-visible {
 }
 
 @media (max-width: 768px) {
-    body { font-size: 15px; }
+    /* body { font-size: 15px; } /* Base size for tablet-like */ */
+
+    /* Show hamburger and hide desktop nav */
+    .mobile-nav-toggle {
+        display: block; /* Show hamburger */
+    }
+    .site-header .main-nav { /* Selects .main-nav only if it's a direct child or inside .site-header */
+        display: none; /* Hide desktop nav links container by default */
+    }
+     .site-header .container {
+        /* Ensure h1 and toggle are properly aligned.
+           If h1 is on left and toggle on right, use justify-content: space-between;
+           If nav was part of this flex, it would be more complex.
+           The current setup implies .main-nav is separate or handled by JS toggle.
+        */
+    }
+    .site-header h1 {
+        font-size: clamp(1.6em, 6vw, 2.4em); /* Slightly larger for tablet */
+        /* Potentially reduce margin if it creates too much space next to toggle */
+    }
+
+    /* Styles for the .main-nav when it becomes the mobile dropdown */
+    .main-nav.mobile-nav-active { /* This class is toggled by JS */
+        display: flex; /* Or block, depending on desired layout */
+        flex-direction: column;
+        position: absolute; /* Position it relative to the header or viewport */
+        top: 100%; /* Example: Drop down from bottom of header */
+        left: 0;
+        right: 0;
+        background-color: var(--neutral-darkest); /* Example background */
+        z-index: 1000; /* Ensure it's on top */
+        padding: var(--space-sm) 0;
+        border-top: 1px solid var(--primary-green-dark);
+        box-shadow: var(--shadow-lg);
+    }
+    .main-nav.mobile-nav-active ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+    .main-nav.mobile-nav-active ul li {
+        display: block; /* Full width list items */
+        margin: 0;
+        text-align: center; /* Or left, as preferred */
+    }
+    .main-nav.mobile-nav-active ul li a {
+        display: block;
+        padding: var(--space-lg); /* Large tap targets */
+        color: var(--white-text-for-dark-bg);
+        text-decoration: none;
+        border-bottom: 1px solid var(--neutral-dark); /* Separators */
+    }
+    .main-nav.mobile-nav-active ul li:last-child a {
+        border-bottom: none;
+    }
+    .main-nav.mobile-nav-active ul li a:hover,
+    .main-nav.mobile-nav-active ul li a:focus {
+        background-color: var(--primary-green);
+        color: var(--primary-green-accessible-text);
+    }
+
+
     .filters { padding: var(--space-lg); gap: var(--space-md); }
     .deal-card-content { padding: var(--space-lg); }
     .deal-card h3 { font-size: 1.15em; }
@@ -1632,7 +1820,7 @@ a:focus-visible {
 @media (max-width: 576px) {
     .site-header { padding: var(--space-lg) 0; margin-bottom: var(--space-lg); }
     .site-header h1 { font-size: clamp(1.6em, 6vw, 2.2em); }
-    .site-header p { font-size: clamp(0.9em, 2.5vw, 1em); }
+    /* .site-header p { font-size: clamp(0.9em, 2.5vw, 1em); } /* Tagline, may be hidden or restyled */ */
 
     .filters { flex-direction: column; }
     .search-wrapper, .category-wrapper, .sort-wrapper, .clear-wrapper {
@@ -1642,15 +1830,19 @@ a:focus-visible {
         margin-left: 0; /* Reset margin for clear button */
     }
     #deals-container { grid-template-columns: 1fr; gap: var(--space-lg); }
+    #product-listing { grid-template-columns: 1fr; gap: var(--space-lg); } /* Ensure product listing is also single column */
+    .deal-card-content { padding: var(--space-md); } /* Reduce padding in cards */
+    .deal-card h3 { font-size: 1.1em; } /* Adjust card title */
     .deal-card-image-container { height: 180px; }
     .no-deals-message { font-size: 1.05em; padding: var(--space-xl) var(--space-lg); }
     .no-deals-message i { font-size: 3em; }
     .site-footer { padding: var(--space-lg); margin-top: var(--space-lg); }
 
     .modal-body { flex-direction: column; }
-    .modal-image-container { flex-basis: auto; max-height: 180px; } /* Smaller modal image */
-    .modal-details h3 { font-size: 1.3em; }
-    .modal-price { font-size: 1.6em; }
+    .modal-content { max-width: 95vw; padding: var(--space-md); } /* Responsive modal content */
+    .modal-image-container { flex-basis: auto; max-height: 150px; } /* Smaller modal image */
+    .modal-details h3 { font-size: 1.2em; } /* Adjust modal title */
+    .modal-price { font-size: 1.5em; } /* Adjust modal price */
 
     .auth-forms-wrapper > .form-container {
         padding: var(--space-lg); /* Reduce padding on very small screens */
@@ -1658,17 +1850,27 @@ a:focus-visible {
     .contact-form-wrapper {
         padding: var(--space-lg); /* Reduce padding on very small screens */
     }
+     .contact-form-wrapper #contactForm input[type="text"],
+     .contact-form-wrapper #contactForm input[type="email"],
+     .contact-form-wrapper #contactForm textarea {
+        width: 100%; /* Ensure form elements are full width */
+    }
+    .contact-form-wrapper #contactForm button[type="submit"].button-style {
+        width: 100%; /* Full width button */
+    }
+    .content-page {
+        padding-left: var(--space-md); /* Reduce padding for content pages */
+        padding-right: var(--space-md);
+    }
+
 
     /* Refinements for 576px from subtask */
     .deal-card .view-deal-btn {
         width: 100%; /* Make button full width */
         padding: var(--space-sm) var(--space-lg); /* Ensure sufficient padding */
     }
-    .site-footer .footer-links a {
-        padding: var(--space-xs); /* Add some padding around links for better touchability */
-        display: inline-block; /* Ensure padding is applied correctly */
-        margin-bottom: var(--space-xs); /* Add some spacing if they wrap */
-    }
+    /* Footer links already handled by flex-direction: column at 480px, which is fine */
+
 }
 
 /* --- Ending Soon Indicator --- */

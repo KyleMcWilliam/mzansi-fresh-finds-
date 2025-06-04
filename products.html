@@ -34,59 +34,63 @@
     </header>
     <main>
         <h1>Our Products</h1>
-        <aside class="filters-sort-section">
-            <h2>Filters</h2>
-            <div>
-                <label for="category-filter">Filter by Category:</label>
-                <select id="category-filter" name="category">
-                    <option value="all">All</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Dairy">Dairy</option>
-                    <option value="Bakery">Bakery</option>
-                    <option value="Meat">Meat</option>
-                    <option value="Pantry">Pantry</option>
-                    <option value="Prepared Foods">Prepared Foods</option>
-                </select>
-            </div>
-            <div>
-                <label for="farmer-filter">Filter by Farmer:</label>
-                <input type="text" id="farmer-filter" name="farmer">
-            </div>
-            <button id="apply-filters-btn">Apply Filters</button>
-
-            <div class="location-filters">
-                <h3>Location</h3>
+        <div class="products-layout-container">
+            <aside class="filters-sort-section">
+                <h2>Filters</h2>
                 <div>
-                    <label for="postcode-search">Search by Postcode:</label>
-                    <input type="text" id="postcode-search" name="postcode" placeholder="Enter postcode">
-                    <button id="postcode-search-btn">Search</button>
+                    <label for="category-filter">Filter by Category:</label>
+                    <select id="category-filter" name="category">
+                        <option value="all">All</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Dairy">Dairy</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Meat">Meat</option>
+                        <option value="Pantry">Pantry</option>
+                        <option value="Prepared Foods">Prepared Foods</option>
+                    </select>
                 </div>
                 <div>
-                    <button id="deals-near-me-btn">Use My Current Location</button>
+                    <label for="farmer-filter">Filter by Farmer:</label>
+                    <input type="text" id="farmer-filter" name="farmer">
                 </div>
-            </div>
+                <button id="apply-filters-btn" class="button-style">Apply Filters</button>
 
-            <h2>Sort</h2>
-            <div>
-                <label for="sort-dropdown">Sort by:</label>
-                <select id="sort-dropdown" name="sort">
-                    <option value="newest" selected>Newest</option>
-                    <option value="expiry">Nearing Expiry</option>
-                    <option value="distance">Distance: Nearest</option>
-                    <option value="discount">Biggest Discount %</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                </select>
+                <div class="location-filters">
+                    <h3>Location</h3>
+                    <div>
+                        <label for="postcode-search">Search by Postcode:</label>
+                        <input type="text" id="postcode-search" name="postcode" placeholder="Enter postcode">
+                        <button id="postcode-search-btn" class="button-style">Search</button>
+                    </div>
+                    <div>
+                        <button id="deals-near-me-btn" class="button-style">Use My Current Location</button>
+                    </div>
+                </div>
+
+                <h2>Sort</h2>
+                <div>
+                    <label for="sort-dropdown">Sort by:</label>
+                    <select id="sort-dropdown" name="sort">
+                        <option value="newest" selected>Newest</option>
+                        <option value="expiry">Nearing Expiry</option>
+                        <option value="distance">Distance: Nearest</option>
+                        <option value="discount">Biggest Discount %</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                    </select>
+                </div>
+            </aside>
+            <div class="products-main-content">
+                <section id="product-listing" aria-live="polite">
+                    <!-- Products will be loaded here by JavaScript -->
+                </section>
+                <section id="map-deals-section">
+                    <h2>Store Locations</h2>
+                    <div id="map-view" style="height: 400px; margin-bottom: 20px;"></div>
+                </section>
             </div>
-        </aside>
-        <section id="product-listing" aria-live="polite">
-            <!-- Products will be loaded here by JavaScript -->
-        </section>
-        <section id="map-deals-section">
-            <h2>Store Locations</h2>
-            <div id="map-view" style="height: 400px; margin-bottom: 20px;"></div>
-        </section>
+        </div>
     </main>
     <footer class="site-footer">
         <div class="container">

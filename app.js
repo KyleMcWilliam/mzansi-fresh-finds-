@@ -35,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/stores', require('./routes/stores')); // This router should only contain API endpoints
 app.use('/api/deals', require('./routes/deals'));
+app.use('/api/products', require('./routes/products'));
 
 // Custom Error Handling Middleware (should be after all routes)
 app.use((err, req, res, next) => {

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+// Assuming addToCart action will be in cartActions.js
+// If it's in productActions.js or another file, adjust the import path accordingly.
+import { addToCart } from '../actions/cartActions';
 import {
   listProductDetails,
   createProductReview,
@@ -95,7 +99,15 @@ const ProductScreen = () => {
               <p>Price: ${product.price}</p>
               <p>Description: {product.description}</p>
               <p>Status: {product.countInStock > 0 ? 'In Stock' : 'Out Of Stock'}</p>
-              {/* Add to Cart button/logic here later */}
+              {product.countInStock > 0 && (
+                <button
+                  onClick={() => addToCartHandler(product._id, 1)}
+                  style={buttonStyle}
+                  type="button"
+                >
+                  Add To Cart
+                </button>
+              )}
             </div>
           </div>
 

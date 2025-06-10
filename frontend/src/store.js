@@ -6,6 +6,7 @@ import {
   productDetailsReducer,
   productReviewCreateReducer,
 } from './reducers/productReducers';
+import { cartReducer } from './reducers/cartReducers';
 // Import other reducers here, e.g., userLoginReducer
 // import { userLoginReducer } from './reducers/userReducers';
 
@@ -14,6 +15,7 @@ const reducer = combineReducers({
   productList: productListReducer,
   productDetails: productDetailsReducer,
   productReviewCreate: productReviewCreateReducer,
+  cart: cartReducer,
   // userLogin: userLoginReducer, // Example of another reducer
   // Add other reducers here
 });

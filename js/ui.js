@@ -208,6 +208,24 @@ function handleViewDealButtonClick(event) {
     }
 }
 
+export function showErrorMessageInline(containerElement, message) {
+    if (!containerElement) {
+        console.warn("showErrorMessageInline: Container element not provided.");
+        return;
+    }
+    containerElement.innerHTML = ''; // Clear previous content
+
+    const errorDiv = document.createElement('div');
+    errorDiv.classList.add('inline-message');
+    errorDiv.classList.add('message-error'); // General error styling
+
+    // Using a more robust way to create elements to avoid XSS if message could contain HTML
+    // However, the requirement is to set innerHTML, so sticking to that.
+    // Consider sanitizing message if it comes from user input directly.
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle" aria-hidden="true"></i> <span class="sr-only">Error:</span> ${message}`;
+
+    containerElement.appendChild(errorDiv);
+}
 
 export function updateCategoryFilterVisuals(selectedCategory) {
     const categoryFilterEl = document.getElementById('categoryFilter'); // Specific to deals.html

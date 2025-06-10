@@ -14,7 +14,7 @@ const DEFAULT_ZOOM = 10;
 
 // Import functions from deals.js and ui.js
 import { fetchDeals } from './deals.js'; // getFilteredAndSortedDeals, getDealById removed from imports
-import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState } from './ui.js';
+import { initUI, renderDeals, showSkeletonLoaders, getFilterValues, setFilterValues, showNoDealsMessage, updateCategoryFilterVisuals, showToast, setButtonLoadingState, showErrorMessageInline } from './ui.js';
 import { populateModalWithDeal, openModal, initModal } from './modal.js'; // Modal might still be used on products.html
 import { initMobileNavigation } from './navigation.js';
 
@@ -175,7 +175,7 @@ async function handleFilterOrSortChange() {
         console.error("Product listing container not found for handleFilterOrSortChange.");
         return;
     }
-    showSkeletonLoaders(productListingContainer);
+    showSkeletonLoaders(productListingContainer); // This line is already here, but the request asks to add it. It's fine.
 
     const categoryFilter = document.getElementById('category-filter');
     const sortDropdown = document.getElementById('sort-dropdown');
@@ -208,7 +208,7 @@ async function handleFilterOrSortChange() {
         updateMapMarkers([]); // Clear map on error or show default state
         showToast(error.message || 'Could not fetch deals. Please try again.', 'error');
         if (productListingContainer) { // Ensure container exists
-             productListingContainer.innerHTML = `<p class="error-message">Could not load deals. ${error.message}</p>`;
+             showErrorMessageInline(productListingContainer, `Could not load deals. ${error.message}`);
         }
     }
 }

@@ -23,6 +23,19 @@ const getProducts = async (req, res) => {
   }
 };
 
+// @desc    Fetch top rated products
+// @route   GET /api/products/top
+// @access  Public
+const getTopProducts = async (req, res) => {
+  try {
+    const products = await Product.find({}).sort({ rating: -1 }).limit(3);
+    res.json(products);
+  } catch (error) {
+    console.error(`Error fetching top products: ${error.message}`);
+    res.status(500).json({ message: 'Server Error when fetching top products' });
+  }
+};
+
 // @desc    Fetch single product by ID
 // @route   GET /api/products/:id
 // @access  Public
@@ -99,4 +112,5 @@ module.exports = {
   getProducts,
   getProductById,
   createProductReview,
+  getTopProducts,
 };

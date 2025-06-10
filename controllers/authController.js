@@ -16,7 +16,8 @@ exports.registerUser = async (req, res) => {
     user = new User({
       name,
       email,
-      password
+      password,
+      role: 'store_owner' // Add this line
     });
 
     await user.save();

@@ -6,6 +6,7 @@ const {
   getProducts,
   getProductById,
   createProductReview,
+  getTopProducts, // Add getTopProducts here
 } = require('../controllers/productController');
 const authMiddleware = require('../middleware/authMiddleware'); // Assuming authMiddleware is the correct name and path
 
@@ -33,5 +34,10 @@ router
     validateRequest, // Middleware to check for errors
     createProductReview // Your controller
   );
+
+// @route   GET /api/products/top
+// @desc    Get top rated products
+// @access  Public
+router.route('/top').get(getTopProducts);
 
 module.exports = router;

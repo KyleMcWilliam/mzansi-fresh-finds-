@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux'; // To provide the store
 import store from './store'; // Your Redux store
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
 import HomeScreen from './screens/HomeScreen';
 import ProductScreen from './screens/ProductScreen'; // Placeholder
@@ -31,6 +33,7 @@ function App() {
           </Routes>
         </main>
         {/* Footer component can be added here */}
+        <ToastContainer position="bottom-center" autoClose={3000} />
       </Router>
     </Provider>
   );

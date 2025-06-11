@@ -570,6 +570,14 @@ export async function handleLoginFormSubmit(event) {
 // --- Signup Form Handling ---
 export async function handleSignupFormSubmit(event) {
     event.preventDefault();
+
+    // At the very beginning of the function:
+    if (!signupForm) {
+        console.error("Critical: Signup form element not found when trying to submit!");
+        showToast('An essential part of the page is missing. Please refresh and try again or contact support.', 'error');
+        return; // Stop execution
+    }
+
     clearAllErrors(signupForm); // Clear previous errors
 
     const businessNameInput = document.getElementById('signup-business-name');
@@ -580,53 +588,60 @@ export async function handleSignupFormSubmit(event) {
 
     let isValid = true;
 
-    // Validate Business Name
-    if (businessNameInput && !isNotEmpty(businessNameInput.value)) {
-        displayError(businessNameInput, 'Business name is required.');
-        isValid = false;
-    } else if (!businessNameInput) {
-        console.warn('Signup business name input not found');
-        showToast('Business name input not found in the form.', 'error');
-        isValid = false;
-    }
+    try {
+        // Validate Business Name
+        if (businessNameInput && !isNotEmpty(businessNameInput.value)) {
+            displayError(businessNameInput, 'Business name is required.');
+            isValid = false;
+        } else if (!businessNameInput) {
+            console.warn('Signup business name input not found');
+            showToast('Business name input not found in the form.', 'error');
+            isValid = false;
+        }
 
-    // Validate Email
-    if (emailInput && !isNotEmpty(emailInput.value)) {
-        displayError(emailInput, 'Email is required.');
-        isValid = false;
-    } else if (emailInput && !isValidEmail(emailInput.value)) {
-        displayError(emailInput, 'Please enter a valid email address.');
-        isValid = false;
-    } else if (!emailInput) {
-        console.warn('Signup email input not found');
-        showToast('Email input not found in the form.', 'error');
-        isValid = false;
-    }
+        // Validate Email
+        if (emailInput && !isNotEmpty(emailInput.value)) {
+            displayError(emailInput, 'Email is required.');
+            isValid = false;
+        } else if (emailInput && !isValidEmail(emailInput.value)) {
+            displayError(emailInput, 'Please enter a valid email address.');
+            isValid = false;
+        } else if (!emailInput) {
+            console.warn('Signup email input not found');
+            showToast('Email input not found in the form.', 'error');
+            isValid = false;
+        }
 
-    // Validate Password
-    if (passwordInput && !isNotEmpty(passwordInput.value)) {
-        displayError(passwordInput, 'Password is required.');
-        isValid = false;
-    } else if (passwordInput && !isPasswordComplex(passwordInput.value, 8)) { // Assuming minLength 8
-        displayError(passwordInput, 'Password must be at least 8 characters long.');
-        isValid = false;
-    } else if (!passwordInput) {
-        console.warn('Signup password input not found');
-        showToast('Password input not found in the form.', 'error');
-        isValid = false;
-    }
+        // Validate Password
+        if (passwordInput && !isNotEmpty(passwordInput.value)) {
+            displayError(passwordInput, 'Password is required.');
+            isValid = false;
+        } else if (passwordInput && !isPasswordComplex(passwordInput.value, 8)) { // Assuming minLength 8
+            displayError(passwordInput, 'Password must be at least 8 characters long.');
+            isValid = false;
+        } else if (!passwordInput) {
+            console.warn('Signup password input not found');
+            showToast('Password input not found in the form.', 'error');
+            isValid = false;
+        }
 
-    // Validate Confirm Password
-    if (confirmPasswordInput && !isNotEmpty(confirmPasswordInput.value)) {
-        displayError(confirmPasswordInput, 'Please confirm your password.');
-        isValid = false;
-    } else if (passwordInput && confirmPasswordInput && passwordInput.value !== confirmPasswordInput.value) {
-        displayError(confirmPasswordInput, 'Passwords do not match.');
-        isValid = false;
-    } else if (!confirmPasswordInput) {
-        console.warn('Signup confirm password input not found');
-        showToast('Confirm password input not found in the form.', 'error');
-        isValid = false;
+        // Validate Confirm Password
+        if (confirmPasswordInput && !isNotEmpty(confirmPasswordInput.value)) {
+            displayError(confirmPasswordInput, 'Please confirm your password.');
+            isValid = false;
+        } else if (passwordInput && confirmPasswordInput && passwordInput.value !== confirmPasswordInput.value) {
+            displayError(confirmPasswordInput, 'Passwords do not match.');
+            isValid = false;
+        } else if (!confirmPasswordInput) {
+            console.warn('Signup confirm password input not found');
+            showToast('Confirm password input not found in the form.', 'error');
+            isValid = false;
+        }
+    } catch (error) {
+        console.error("Unexpected error during signup form validation:", error);
+        showToast('An unexpected error occurred while preparing the form. Please refresh and try again.', 'error');
+        if (signupButton) setButtonLoadingState(signupButton, false, 'Sign Up'); // Ensure button is reset
+        return; // Stop execution
     }
 
     if (isValid) {

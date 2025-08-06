@@ -17,7 +17,7 @@ import {
 export const listProducts = (keyword = '') => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST });
-    const { data } = await axios.get(`/api/products?keyword=${keyword}`);
+    const { data } = await axios.get(`/api/deals?keyword=${keyword}`);
     dispatch({
       type: PRODUCT_LIST_SUCCESS,
       payload: data,
@@ -36,7 +36,7 @@ export const listProducts = (keyword = '') => async (dispatch) => {
 export const listTopProducts = () => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_TOP_RATED_REQUEST });
-    const { data } = await axios.get('/api/products/top'); // New endpoint
+    const { data } = await axios.get('/api/deals/top'); // New endpoint
     dispatch({
       type: PRODUCT_TOP_RATED_SUCCESS,
       payload: data,

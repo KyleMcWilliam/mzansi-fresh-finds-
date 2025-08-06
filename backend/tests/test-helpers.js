@@ -56,7 +56,7 @@ const createUser = async (userData) => {
 };
 
 // Function to log in a user and get an auth token
-const loginUser = async (email, password)_ => {
+const loginUser = async (email, password) => {
     const response = await request
         .post('/api/auth/login')
         .send({ email, password });

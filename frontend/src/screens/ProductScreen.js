@@ -68,6 +68,12 @@ const ProductScreen = () => {
 
   }, [dispatch, productId, successProductReview, navigate]);
 
+  const addToCartHandler = (id, qty) => {
+    dispatch(addToCart(id, qty));
+    navigate('/cart');
+    toast.success('Added to cart!');
+  };
+
   const submitReviewHandler = (e) => {
     e.preventDefault();
     if (!rating || comment.trim() === '') {

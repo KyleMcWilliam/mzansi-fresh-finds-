@@ -1,0 +1,130 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const PrivacyScreen = () => {
+  const contentPageStyle = {
+    padding: '2rem 1rem',
+    maxWidth: '900px',
+    margin: '0 auto',
+    lineHeight: '1.6',
+  };
+
+  return (
+    <div style={contentPageStyle}>
+      <section>
+        <h2>Privacy Policy</h2>
+        <p>
+          <em>Last Updated: [Insert Date When Finalized]</em>
+        </p>
+
+        <p>
+          Mzansi Fresh Finds ("we," "us," or "our") is committed to protecting
+          your privacy. This Privacy Policy explains how we collect, use,
+          disclose, and safeguard your information when you visit our website.
+          Please read this privacy policy carefully. If you do not agree with
+          the terms of this privacy policy, please do not access the site.
+        </p>
+
+        <h3>Information We Collect</h3>
+        <p>
+          We may collect information about you in a variety of ways. The
+          information we may collect on the Site includes:
+        </p>
+        <ul>
+          <li>
+            <strong>Personal Data:</strong> Currently, our prototype does not
+            require user accounts for browsing. If you contact us via email or a
+            contact form (when implemented), we will collect your name, email
+            address, and any information you voluntarily provide in your
+            message. For businesses signing up (future feature), we will collect
+            business details, contact information, and necessary credentials.
+          </li>
+          <li>
+            <strong>Derivative Data:</strong> Information our servers
+            automatically collect when you access the Site, such as your IP
+            address, browser type, operating system, access times, and the pages
+            you have viewed directly before and after accessing the Site. [Note:
+            This depends on your hosting/analytics setup].
+          </li>
+          <li>
+            <strong>Data From LocalStorage:</strong> We use LocalStorage to save
+            your filter preferences (search term, category, sort order) for a
+            better user experience. This data is stored only on your browser and
+            is not transmitted to our servers.
+          </li>
+        </ul>
+
+        <h3>Use of Your Information</h3>
+        <p>
+          Having accurate information permits us to provide you with a smooth,
+          efficient, and customized experience. Specifically, we may use
+          information collected about you via the Site to:
+        </p>
+        <ul>
+          <li>Respond to your inquiries and provide customer support.</li>
+          <li>Improve the operation and customization of the Site.</li>
+          <li>
+            Monitor and analyze usage and trends to improve your experience with
+            the Site.
+          </li>
+          <li>[Future] Create and manage business accounts.</li>
+          <li>[Future] Facilitate the listing and discovery of deals.</li>
+          <li>Comply with legal requirements.</li>
+        </ul>
+
+        <h3>Disclosure of Your Information</h3>
+        <p>
+          We do not currently share your personal information with third parties,
+          except as necessary to operate the site (e.g., with our hosting
+          provider), comply with law, protect our rights, or with your consent.
+          [This section will need significant updates if/when you add business
+          accounts, analytics, payments, etc.].
+        </p>
+
+        <h3>Security of Your Information</h3>
+        <p>
+          We use administrative, technical, and physical security measures to
+          help protect your personal information. While we have taken reasonable
+          steps to secure the personal information you provide to us, please be
+          aware that despite our efforts, no security measures are perfect or
+          impenetrable, and no method of data transmission can be guaranteed
+          against any interception or other type of misuse.
+        </p>
+
+        <h3>Cookies and Tracking Technologies</h3>
+        <p>
+          We currently do not use traditional cookies for tracking purposes
+          beyond the functional use of LocalStorage for filter persistence.
+          [This section needs review if you add analytics like Google Analytics
+          or other third-party services].
+        </p>
+
+        <h3>Policy for Children</h3>
+        <p>
+          We do not knowingly solicit information from or market to children
+          under the age of 13. If you become aware of any data we have collected
+          from children under age 13, please contact us using the contact
+          information provided below.
+        </p>
+
+        <h3>Changes to This Privacy Policy</h3>
+        <p>
+          We may update this Privacy Policy from time to time in order to
+          reflect, for example, changes to our practices or for other
+          operational, legal, or regulatory reasons. The updated version will be
+          indicated by an updated "Last Updated" date and the updated version
+          will be effective as soon as it is accessible.
+        </p>
+
+        <h3>Contact Us</h3>
+        <p>
+          If you have questions or comments about this Privacy Policy, please
+          contact us via our <Link to="/contact">Contact Page</Link> or email us
+          at: [Insert Contact Email].
+        </p>
+      </section>
+    </div>
+  );
+};
+
+export default PrivacyScreen;

@@ -1,27 +1,57 @@
-import { CART_ADD_ITEM } from '../constants/cartConstants';
-// import axios from 'axios'; // If we were fetching product details
+import { CART_ADD_ITEM, CART_REMOVE_ITEM, CART_SAVE_SHIPPING_ADDRESS, CART_SAVE_PAYMENT_METHOD } from '../constants/cartConstants';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-// For now, dispatching directly without API call for simplicity
-// In a real app, you'd fetch product details here via API:
-// const { data } = await axios.get(`/api/products/${id}`);
-// And then dispatch with product data as payload.
 export const addToCart = (id, qty) => async (dispatch, getState) => {
-  // Placeholder: Simulate adding item data.
-  // In a real app, you'd get product data from an API or pass it directly.
-  const itemData = {
-    product: id,
-    name: 'Sample Product Name', // Replace with actual product name later
-    image: '/images/sample.jpg', // Replace with actual product image later
-    price: 0.00, // Replace with actual product price later
-    countInStock: 0, // Replace with actual stock later
-    qty,
-  };
+  try {
+    const docRef = doc(db, 'deals', id);
+    const docSnap = await getDoc(docRef);
 
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      dispatch({
+        type: CART_ADD_ITEM,
+        payload: {
+          product: id,
+          name: data.name,
+          image: data.image,
+          price: data.price,
+          countInStock: data.countInStock,
+          qty,
+        },
+      });
+
+      localStorage.setItem('cartItems', JSON.stringify(getState().cart.cartItems));
+    }
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+  }
+};
+
+export const removeFromCart = (id) => (dispatch, getState) => {
   dispatch({
-    type: CART_ADD_ITEM,
-    payload: itemData,
+    type: CART_REMOVE_ITEM,
+    payload: id,
   });
 
-  // Optionally, save to localStorage (common practice)
-  // localStorage.setItem('cartItems', JSON.stringify(getState().cart.cartItems));
+  localStorage.setItem('cartItems', JSON.stringify(getState().cart.cartItems));
+};
+
+export const saveShippingAddress = (data) => (dispatch) => {
+  dispatch({
+    type: CART_SAVE_SHIPPING_ADDRESS,
+    payload: data,
+  });
+
+  localStorage.setItem('shippingAddress', JSON.stringify(data));
+};
+
+export const savePaymentMethod = (data) => (dispatch) => {
+  dispatch({
+    type: CART_SAVE_PAYMENT_METHOD,
+    payload: data,
+  });
+
+  localStorage.setItem('paymentMethod', JSON.stringify(data));
 };

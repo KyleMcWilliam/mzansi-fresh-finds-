@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Form, Button, Row, Col, Container } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../actions/userActions';
+import { login, googleLogin } from '../actions/userActions';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -59,6 +59,13 @@ const LoginScreen = () => {
 
             <Button type='submit' variant='primary' className='mt-3'>
               Sign In
+            </Button>
+            <Button
+              variant='danger'
+              className='mt-3 ms-2'
+              onClick={() => dispatch(googleLogin())}
+            >
+              Sign In with Google
             </Button>
           </Form>
 

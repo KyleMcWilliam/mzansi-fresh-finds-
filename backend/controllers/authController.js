@@ -17,21 +17,22 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password,
-      role: 'store_owner' // Add this line
+      // role defaults to 'consumer' as defined in the User model
     });
 
     await user.save();
 
     const payload = {
       user: {
-        id: user.id
+        id: user.id,
+        role: user.role
       }
     };
 
     jwt.sign(
       payload,
       config.jwtSecret,
-      { expiresIn: 3600 }, // Expires in 1 hour
+      { expiresIn: '7d' }, // Expires in 7 days
       (err, token) => {
         if (err) throw err;
         res.json({ token });
@@ -68,7 +69,7 @@ exports.loginUser = async (req, res) => {
     jwt.sign(
       payload,
       config.jwtSecret,
-      { expiresIn: 3600 }, // Expires in 1 hour
+      { expiresIn: '7d' }, // Expires in 7 days
       (err, token) => {
         if (err) throw err;
         res.json({ token });

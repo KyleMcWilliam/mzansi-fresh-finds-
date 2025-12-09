@@ -9,7 +9,8 @@ import ContactScreen from './screens/ContactScreen'; // Added
 import PrivacyScreen from './screens/PrivacyScreen'; // Added
 import ProductScreen from './screens/ProductScreen'; // Placeholder
 // import CartScreen from './screens/CartScreen'; // Placeholder
-// import LoginScreen from './screens/LoginScreen'; // Placeholder
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 
 // Basic container styling
 const containerStyle = {
@@ -31,7 +32,8 @@ function App() {
           <Route path='/privacy' element={<PrivacyScreen />} /> {/* Added */}
               <Route path='/product/:id' element={<ProductScreen />} />
           {/* <Route path='/cart' element={<CartScreen />} /> */}
-          {/* <Route path='/login' an element={<LoginScreen />} /> */}
+          <Route path='/login' element={<LoginScreen />} />
+          <Route path='/register' element={<RegisterScreen />} />
           {/* Add other routes here */}
         </Routes>
       </main>

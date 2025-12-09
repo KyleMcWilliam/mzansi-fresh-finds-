@@ -1,4 +1,7 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
 module.exports = {
-  mongoURI: 'mongodb://localhost:27017/your-database-name', // Replace with your MongoDB connection string
-  jwtSecret: 'your-jwt-secret' // Replace with your JWT secret
+  mongoURI: process.env.MONGO_URI,
+  jwtSecret: process.env.JWT_SECRET
 };

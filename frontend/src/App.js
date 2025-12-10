@@ -8,9 +8,10 @@ import AboutScreen from './screens/AboutScreen'; // Added
 import ContactScreen from './screens/ContactScreen'; // Added
 import PrivacyScreen from './screens/PrivacyScreen'; // Added
 import ProductScreen from './screens/ProductScreen'; // Placeholder
-// import CartScreen from './screens/CartScreen'; // Placeholder
+import CartScreen from './screens/CartScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import DealLocationScreen from './screens/DealLocationScreen';
 
 // Basic container styling
 const containerStyle = {
@@ -30,11 +31,11 @@ function App() {
           <Route path='/about' element={<AboutScreen />} /> {/* Added */}
           <Route path='/contact' element={<ContactScreen />} /> {/* Added */}
           <Route path='/privacy' element={<PrivacyScreen />} /> {/* Added */}
-              <Route path='/product/:id' element={<ProductScreen />} />
-          {/* <Route path='/cart' element={<CartScreen />} /> */}
+          <Route path='/product/:id' element={<ProductScreen />} />
+          <Route path='/cart/:id?' element={<CartScreen />} />
           <Route path='/login' element={<LoginScreen />} />
           <Route path='/register' element={<RegisterScreen />} />
-          {/* Add other routes here */}
+          <Route path='/deal-locations' element={<DealLocationScreen />} />
         </Routes>
       </main>
       {/* Footer component can be added here */}

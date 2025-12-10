@@ -19,6 +19,8 @@ export const addToCart = (id, qty) => async (dispatch, getState) => {
           price: data.price,
           countInStock: data.countInStock,
           qty,
+          address: data.address || 'Address not available',
+          seller: data.seller || 'Seller info not available',
         },
       });
 
